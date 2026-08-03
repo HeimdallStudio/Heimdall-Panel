@@ -37,6 +37,21 @@ const MODERN_SUBSCRIPTION_PROFILE_FIELDS = [
 
 export const DEFAULT_SUBSCRIPTION_PROFILE_PORT = 1995;
 
+// Keep this list aligned with profilevalidation.runtimeProtocolSupported and
+// service.runtimeProfileProtocolSupported. Protocols outside this set cannot
+// own automatic Multi Profile runtime listeners.
+const SUBSCRIPTION_PROFILE_PROTOCOLS = new Set([
+  'vless',
+  'vmess',
+  'trojan',
+  'shadowsocks',
+  'hysteria',
+]);
+
+export function supportsSubscriptionProfiles(protocol: string): boolean {
+  return SUBSCRIPTION_PROFILE_PROTOCOLS.has(protocol.trim().toLowerCase());
+}
+
 export function isModernSubscriptionProfile(
   profile: ExternalProxyEntry,
 ): boolean {
@@ -160,6 +175,14 @@ export function normalizeSubscriptionProfilesForSave(
     delete withoutRuntime.runtime;
     return withoutRuntime;
   });
+}
+
+export function normalizeSubscriptionProfilesForProtocolSave(
+  protocol: string,
+  profiles: ExternalProxyEntry[],
+): ExternalProxyEntry[] {
+  if (!supportsSubscriptionProfiles(protocol)) return [];
+  return normalizeSubscriptionProfilesForSave(profiles);
 }
 
 export interface SubscriptionProfileEndpoint {

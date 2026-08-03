@@ -14,6 +14,7 @@ import type { Sniffing } from '@/schemas/primitives';
 import type { z } from 'zod';
 import { normalizeStreamSettingsForWire } from '@/lib/xray/stream-wire-normalize';
 import { canEnableSniffing } from '@/lib/xray/protocol-capabilities';
+import { supportsSubscriptionProfiles } from '@/lib/xray/subscription-profile';
 import { XHttpStreamSettingsSchema, XHttpXmuxSchema } from '@/schemas/protocols/stream/xhttp';
 
 const XMUX_DEFAULTS = XHttpXmuxSchema.parse({});
@@ -335,6 +336,12 @@ export function formValuesToWirePayload(values: InboundFormValues): WireInboundP
   if (streamPruned) {
     streamPruned = normalizeStreamSettingsForWire(streamPruned, { side: 'inbound' });
     stripTlsCertUseFile(streamPruned);
+
+    // Defense at the wire boundary: hidden or stale form state must never
+    // reach the backend for protocols without Multi Profile support.
+    if (!supportsSubscriptionProfiles(values.protocol)) {
+      delete streamPruned.externalProxy;
+    }
   }
   dropLegacyOptionalEmpties(settingsPruned, streamPruned);
   const payload: WireInboundPayload = {

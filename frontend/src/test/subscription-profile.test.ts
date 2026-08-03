@@ -22,8 +22,10 @@ import {
   expandSubscriptionProfileEndpoints,
   hasAutomaticRuntimeMarker,
   isModernSubscriptionProfile,
+  normalizeSubscriptionProfilesForProtocolSave,
   normalizeSubscriptionProfilesForSave,
   planDefaultSubscriptionPortSync,
+  supportsSubscriptionProfiles,
 } from '@/lib/xray/subscription-profile';
 
 function baseStream(): StreamSettings {
@@ -203,6 +205,18 @@ describe('subscription profile expansion', () => {
     };
     expect(isModernSubscriptionProfile(preAutomaticTopology)).toBe(true);
     expect(hasAutomaticRuntimeMarker(preAutomaticTopology)).toBe(false);
+  });
+
+  it('drops stale hidden profiles for protocols that cannot own Multi Profile runtime listeners', () => {
+    const staleProfiles = [createSubscriptionProfileDraft(8443)];
+
+    expect(supportsSubscriptionProfiles('vless')).toBe(true);
+    expect(supportsSubscriptionProfiles('hysteria')).toBe(true);
+    expect(supportsSubscriptionProfiles('wireguard')).toBe(false);
+    expect(supportsSubscriptionProfiles('tunnel')).toBe(false);
+    expect(normalizeSubscriptionProfilesForProtocolSave('wireguard', staleProfiles)).toEqual([]);
+    expect(normalizeSubscriptionProfilesForProtocolSave('tunnel', staleProfiles)).toEqual([]);
+    expect(normalizeSubscriptionProfilesForProtocolSave('vless', staleProfiles)).toHaveLength(1);
   });
 
   it('preserves hidden IDs and strips deprecated topology controls before Save', () => {

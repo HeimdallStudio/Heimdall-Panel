@@ -87,7 +87,8 @@ import type { NodeRecord } from '@/api/queries/useNodesQuery';
 import ExternalProxyForm from './transport/external-proxy';
 import {
   createSubscriptionProfileDraft,
-  normalizeSubscriptionProfilesForSave,
+  normalizeSubscriptionProfilesForProtocolSave,
+  supportsSubscriptionProfiles,
 } from '@/lib/xray/subscription-profile';
 import { findSubscriptionProfileRuntimeConflicts } from '@/lib/xray/subscription-profile-runtime-bindings';
 
@@ -479,6 +480,12 @@ export default function InboundFormModal({
       if (!NODE_ELIGIBLE_PROTOCOLS.has(next)) {
         setV('nodeId', null);
       }
+      if (!supportsSubscriptionProfiles(next)) {
+        // Multi Profile lives in a separate Ant Design form store. Clear it
+        // explicitly when switching to a protocol that cannot own profiles,
+        // otherwise the hidden VLESS draft survives and blocks Save.
+        profileForm.setFieldValue(['streamSettings', 'externalProxy'], []);
+      }
       if (next === Protocols.HYSTERIA) {
         setV('streamSettings', {
           network: 'hysteria',
@@ -520,15 +527,18 @@ export default function InboundFormModal({
       'streamSettings',
       'externalProxy',
     ]);
-    const normalizedProfiles = normalizeSubscriptionProfilesForSave(
+    const normalizedProfiles = normalizeSubscriptionProfilesForProtocolSave(
+      values.protocol,
       Array.isArray(currentProfiles) ? currentProfiles : [],
     );
-    const runtimeConflicts = findSubscriptionProfileRuntimeConflicts({
-      parentListen: values.listen ?? '',
-      parentPort: values.port,
-      parentStreamSettings: values.streamSettings ?? {},
-      profiles: normalizedProfiles,
-    });
+    const runtimeConflicts = supportsSubscriptionProfiles(values.protocol)
+      ? findSubscriptionProfileRuntimeConflicts({
+        parentListen: values.listen ?? '',
+        parentPort: values.port,
+        parentStreamSettings: values.streamSettings ?? {},
+        profiles: normalizedProfiles,
+      })
+      : [];
     if (runtimeConflicts.length > 0) {
       messageApi.error(
         t('pages.inbounds.form.profileRuntimeConflictSaveBlocked'),
@@ -831,9 +841,7 @@ export default function InboundFormModal({
       {/* externalProxy only feeds client share links. Wireguard's per-peer
           .conf fanout resolves its host elsewhere, and tunnel (dokodemo-door)
           has no clients at all — the section is dead weight on both. */}
-      {protocol !== Protocols.WIREGUARD && protocol !== Protocols.TUNNEL && (
-        <ExternalProxyForm />
-      )}
+      {supportsSubscriptionProfiles(protocol) && <ExternalProxyForm />}
 
       <SockoptForm toggleSockopt={toggleSockopt} network={network} />
 

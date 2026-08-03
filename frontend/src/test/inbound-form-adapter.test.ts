@@ -9,6 +9,7 @@ import {
 import { InboundDbFieldsSchema, InboundFormSchema } from '@/schemas/forms/inbound-form';
 import { normalizeXhttpForWire } from '@/lib/xray/stream-wire-normalize';
 import { SockoptStreamSettingsSchema } from '@/schemas/protocols/stream/sockopt';
+import { createSubscriptionProfileDraft } from '@/lib/xray/subscription-profile';
 
 // Round-trip: raw DB row → InboundFormValues → wire payload, asserting
 // that the JSON-stringified settings/streamSettings/sniffing in the
@@ -154,6 +155,35 @@ describe('transportless streamSettings (wireguard / tunnel)', () => {
       expect(stream.sockopt?.tproxy).toBe('tproxy');
     }
   });
+
+  it.each(['wireguard', 'tunnel'] as const)(
+    'strips stale Multi Profile state from the %s wire payload',
+    (protocol) => {
+      const values = rawInboundToFormValues({
+        port: protocol === 'wireguard' ? 51820 : 12345,
+        protocol,
+        settings: protocol === 'wireguard'
+          ? {
+            secretKey: 'cE9mYWtlLXNlY3JldC1rZXktZm9yLXVuaXQtdGVzdA==',
+            peers: [],
+            clients: [],
+          }
+          : {
+            allowedNetwork: 'tcp,udp',
+            followRedirect: true,
+            portMap: {},
+          },
+        streamSettings: {
+          security: 'none',
+          externalProxy: [createSubscriptionProfileDraft(8443)],
+        },
+        sniffing: { enabled: false },
+      });
+
+      const payload = formValuesToWirePayload(values);
+      expect(JSON.parse(payload.streamSettings)).not.toHaveProperty('externalProxy');
+    },
+  );
 
   it('still rejects a present-but-invalid network value', () => {
     const result = InboundFormSchema.safeParse({
