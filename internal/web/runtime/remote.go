@@ -84,10 +84,11 @@ type Remote struct {
 	// pushed, keyed by panel-side tag, so reconcile can skip re-sending an
 	// unchanged inbound. Guarded by mu; dropped with the Remote on node config change.
 	pushedFP map[string]string
-	// supportsZstd is learned from the node's X-3x-Node-Caps response header; once
-	// seen, config pushes to this node are zstd-compressed. Old nodes never set
-	// it, so they keep receiving plain bodies (mixed-version safe).
-	supportsZstd bool
+	// Capabilities are learned from the node's X-3x-Node-Caps response header
+	// and initialized from the last successful heartbeat. Old nodes keep both
+	// false, preserving plain transport and rejecting unsupported runtime topology.
+	supportsZstd            bool
+	supportsRuntimeProfiles bool
 
 	// Per-node client honoring the TLS verify mode, built once and reused; a
 	// node config change drops the cached Remote so the next one rebuilds it.
@@ -107,10 +108,12 @@ type RemoteInboundOption struct {
 
 func NewRemote(n *model.Node, r NodeEgressResolver) *Remote {
 	return &Remote{
-		node:           n,
-		remoteIDByTag:  make(map[string]int),
-		pushedFP:       make(map[string]string),
-		egressResolver: r,
+		node:                    n,
+		remoteIDByTag:           make(map[string]int),
+		pushedFP:                make(map[string]string),
+		supportsZstd:            wirecodec.HasCapability(n.Capabilities, wirecodec.CapZstd),
+		supportsRuntimeProfiles: wirecodec.HasCapability(n.Capabilities, wirecodec.CapRuntimeProfilesV1),
+		egressResolver:          r,
 	}
 }
 
@@ -122,15 +125,20 @@ func (r *Remote) nodeSupportsZstd() bool {
 	return r.supportsZstd
 }
 
-// recordCaps learns the node's capabilities from a response header so later
-// pushes can use the negotiated envelope.
+// recordCaps learns the node's exact capabilities from a response header so
+// later pushes can use only features the currently running node advertises.
 func (r *Remote) recordCaps(h http.Header) {
-	if !strings.Contains(h.Get(wirecodec.CapsHeader), wirecodec.CapZstd) {
-		return
-	}
+	raw := h.Get(wirecodec.CapsHeader)
 	r.mu.Lock()
-	r.supportsZstd = true
+	r.supportsZstd = wirecodec.HasCapability(raw, wirecodec.CapZstd)
+	r.supportsRuntimeProfiles = wirecodec.HasCapability(raw, wirecodec.CapRuntimeProfilesV1)
 	r.mu.Unlock()
+}
+
+func (r *Remote) nodeSupportsRuntimeProfiles() bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.supportsRuntimeProfiles
 }
 
 // httpClient lazily builds and caches the per-node client honoring the TLS
@@ -400,7 +408,53 @@ func (r *Remote) refreshRemoteIDs(ctx context.Context) error {
 	return nil
 }
 
+func inboundCarriesRuntimeProfiles(streamSettings string) bool {
+	if strings.TrimSpace(streamSettings) == "" {
+		return false
+	}
+	var stream map[string]any
+	if json.Unmarshal([]byte(streamSettings), &stream) != nil {
+		return false
+	}
+	entries, _ := stream["externalProxy"].([]any)
+	for _, raw := range entries {
+		profile, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		if enabled, exists := profile["enabled"]; exists {
+			value, ok := enabled.(bool)
+			if !ok || !value {
+				continue
+			}
+		}
+		if runtimeMetadata, exists := profile["runtime"]; exists && runtimeMetadata != nil {
+			if _, ok := runtimeMetadata.(map[string]any); ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (r *Remote) requireRuntimeProfileCapability(ib *model.Inbound) error {
+	if ib == nil || !inboundCarriesRuntimeProfiles(ib.StreamSettings) {
+		return nil
+	}
+	if r.nodeSupportsRuntimeProfiles() {
+		return nil
+	}
+	return fmt.Errorf(
+		"node %s does not advertise the %q capability",
+		r.node.Name,
+		wirecodec.CapRuntimeProfilesV1,
+	)
+}
+
 func (r *Remote) AddInbound(ctx context.Context, ib *model.Inbound) error {
+	if err := r.requireRuntimeProfileCapability(ib); err != nil {
+		return err
+	}
 	payload := wireInbound(ib, r.node.Id)
 	env, err := r.do(ctx, http.MethodPost, "panel/api/inbounds/add", payload)
 	if err != nil {
@@ -433,6 +487,9 @@ func (r *Remote) DelInbound(ctx context.Context, ib *model.Inbound) error {
 }
 
 func (r *Remote) UpdateInbound(ctx context.Context, oldIb, newIb *model.Inbound) error {
+	if err := r.requireRuntimeProfileCapability(newIb); err != nil {
+		return err
+	}
 	id, err := r.resolveRemoteID(ctx, oldIb.Tag)
 	if err != nil {
 		return r.AddInbound(ctx, newIb)
@@ -827,16 +884,10 @@ func wireInbound(ib *model.Inbound, remoteNodeID int) url.Values {
 	return v
 }
 
-// sanitizeStreamSettingsForRemote strips file-based TLS certificate paths
-// from the StreamSettings before sending to a remote node, but ONLY when
-// inline certificate content (certificate / key) is also present in the same
-// entry.  In that case the file paths are redundant and stripping them avoids
-// confusion when the central panel's local paths don't exist on the remote.
-//
-// When a certificate entry contains ONLY file paths (no inline content) the
-// paths are left untouched: the user explicitly entered paths that exist on
-// the remote node's filesystem, and removing them would leave Xray with TLS
-// configured but no certificate, causing Xray to crash on the remote node.
+// sanitizeStreamSettingsForRemote strips redundant file-backed TLS paths
+// before sending a logical inbound to a node. Parent TLS and every automatic
+// runtime profile are handled. Path-only certificates are preserved because
+// those paths may intentionally exist only on the remote node.
 func sanitizeStreamSettingsForRemote(streamSettings string) string {
 	if streamSettings == "" {
 		return streamSettings
@@ -847,34 +898,19 @@ func sanitizeStreamSettingsForRemote(streamSettings string) string {
 		return streamSettings
 	}
 
-	tlsSettings, ok := stream["tlsSettings"].(map[string]any)
-	if !ok {
-		return streamSettings
-	}
+	changed := stripRedundantTLSFilePaths(stream["tlsSettings"])
 
-	certificates, ok := tlsSettings["certificates"].([]any)
-	if !ok {
-		return streamSettings
-	}
-
-	changed := false
-	for _, cert := range certificates {
-		c, ok := cert.(map[string]any)
+	entries, _ := stream["externalProxy"].([]any)
+	for _, raw := range entries {
+		profile, ok := raw.(map[string]any)
 		if !ok {
 			continue
 		}
-		// Only strip file paths when inline content is present so that the
-		// remote Xray still has a valid certificate to use.
-		hasCertFile := c["certificateFile"] != nil && c["certificateFile"] != ""
-		hasKeyFile := c["keyFile"] != nil && c["keyFile"] != ""
-		hasCertInline := isNonEmptySlice(c["certificate"])
-		hasKeyInline := isNonEmptySlice(c["key"])
-		if hasCertFile && hasCertInline {
-			delete(c, "certificateFile")
-			changed = true
+		runtimeMetadata, _ := profile["runtime"].(map[string]any)
+		if runtimeMetadata == nil {
+			continue
 		}
-		if hasKeyFile && hasKeyInline {
-			delete(c, "keyFile")
+		if stripRedundantTLSFilePaths(runtimeMetadata["tlsSettings"]) {
 			changed = true
 		}
 	}
@@ -887,6 +923,38 @@ func sanitizeStreamSettingsForRemote(streamSettings string) string {
 		return streamSettings
 	}
 	return string(out)
+}
+
+func stripRedundantTLSFilePaths(raw any) bool {
+	tlsSettings, ok := raw.(map[string]any)
+	if !ok {
+		return false
+	}
+	certificates, ok := tlsSettings["certificates"].([]any)
+	if !ok {
+		return false
+	}
+
+	changed := false
+	for _, cert := range certificates {
+		certificate, ok := cert.(map[string]any)
+		if !ok {
+			continue
+		}
+		hasCertFile := certificate["certificateFile"] != nil && certificate["certificateFile"] != ""
+		hasKeyFile := certificate["keyFile"] != nil && certificate["keyFile"] != ""
+		hasCertInline := isNonEmptySlice(certificate["certificate"])
+		hasKeyInline := isNonEmptySlice(certificate["key"])
+		if hasCertFile && hasCertInline {
+			delete(certificate, "certificateFile")
+			changed = true
+		}
+		if hasKeyFile && hasKeyInline {
+			delete(certificate, "keyFile")
+			changed = true
+		}
+	}
+	return changed
 }
 
 // isNonEmptySlice reports whether v is a non-nil, non-empty JSON array value.

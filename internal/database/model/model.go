@@ -760,17 +760,21 @@ type Node struct {
 	// Heartbeat-updated fields. UpdatedAt advances on every probe even when
 	// the row is otherwise unchanged so the UI's "last seen" tooltip is
 	// truthful without us having to read LastHeartbeat separately.
-	Status        string  `json:"status" gorm:"default:unknown" example:"online"` // online|offline|unknown
-	LastHeartbeat int64   `json:"lastHeartbeat" example:"1700000000"`             // unix seconds, 0 = never
-	LatencyMs     int     `json:"latencyMs" example:"42"`
-	XrayVersion   string  `json:"xrayVersion" example:"25.10.31"`
-	PanelVersion  string  `json:"panelVersion" gorm:"column:panel_version" example:"v3.x.x"`
-	CpuPct        float64 `json:"cpuPct" example:"23.5"`
-	MemPct        float64 `json:"memPct" example:"45.1"`
-	UptimeSecs    uint64  `json:"uptimeSecs" example:"86400"`
-	NetUp         uint64  `json:"netUp" gorm:"column:net_up" example:"1048576"`
-	NetDown       uint64  `json:"netDown" gorm:"column:net_down" example:"2097152"`
-	LastError     string  `json:"lastError"`
+	Status        string `json:"status" gorm:"default:unknown" example:"online"` // online|offline|unknown
+	LastHeartbeat int64  `json:"lastHeartbeat" example:"1700000000"`             // unix seconds, 0 = never
+	LatencyMs     int    `json:"latencyMs" example:"42"`
+	XrayVersion   string `json:"xrayVersion" example:"25.10.31"`
+	PanelVersion  string `json:"panelVersion" gorm:"column:panel_version" example:"v3.x.x"`
+	// Capabilities is the last successfully advertised X-3x-Node-Caps value.
+	// It is observed state, not operator input, and survives offline periods so
+	// desired configuration can still be queued for a previously verified node.
+	Capabilities string  `json:"-" gorm:"column:capabilities"`
+	CpuPct       float64 `json:"cpuPct" example:"23.5"`
+	MemPct       float64 `json:"memPct" example:"45.1"`
+	UptimeSecs   uint64  `json:"uptimeSecs" example:"86400"`
+	NetUp        uint64  `json:"netUp" gorm:"column:net_up" example:"1048576"`
+	NetDown      uint64  `json:"netDown" gorm:"column:net_down" example:"2097152"`
+	LastError    string  `json:"lastError"`
 
 	// XrayState and XrayError are captured from the remote node's /panel/api/server/status
 	// during heartbeats. They let the central panel distinguish "panel API reachable"

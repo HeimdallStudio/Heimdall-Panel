@@ -8,6 +8,7 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
 	"github.com/mhsanaei/3x-ui/v3/internal/profilevalidation"
+	"github.com/mhsanaei/3x-ui/v3/internal/util/wirecodec"
 )
 
 // inboundHasEnabledRuntimeProfiles keeps its historical name for the restart
@@ -129,9 +130,10 @@ func runtimeBindingsForInbound(inbound *model.Inbound) ([]runtimeSocketBinding, 
 // is committed. It checks the complete same-node socket plan, including parent
 // listeners, synthetic profile listeners, and the local Xray API listener.
 //
-// Runtime profiles on remote nodes are intentionally rejected until the node
-// capability/transport phase exists. Persisting them now would create links
-// whose listeners cannot be reconciled on the remote runtime.
+// Remote runtime profiles are accepted only after a successful heartbeat has
+// proved that the selected node runs the same logical-inbound compiler. Socket
+// conflicts remain scoped by NodeID; certificate paths are checked by the node
+// that owns the filesystem when the desired row is reconciled there.
 func (s *InboundService) validateRuntimeProfilesForSave(candidate *model.Inbound, ignoreID int) error {
 	if candidate == nil {
 		return nil
@@ -139,7 +141,7 @@ func (s *InboundService) validateRuntimeProfilesForSave(candidate *model.Inbound
 
 	if err := profilevalidation.ValidateStreamSettings(candidate.StreamSettings, profilevalidation.Options{
 		Protocol:              string(candidate.Protocol),
-		CheckCertificateFiles: true,
+		CheckCertificateFiles: candidate.NodeID == nil,
 	}); err != nil {
 		return fmt.Errorf("subscription profile semantic validation failed: %w", err)
 	}
@@ -154,7 +156,19 @@ func (s *InboundService) validateRuntimeProfilesForSave(candidate *model.Inbound
 		)
 	}
 	if hasRuntimeProfiles && candidate.NodeID != nil {
-		return fmt.Errorf("runtime profiles on remote nodes require the remote-node capability phase")
+		var node model.Node
+		if err := database.GetDB().Model(model.Node{}).
+			Where("id = ?", *candidate.NodeID).
+			First(&node).Error; err != nil {
+			return fmt.Errorf("load remote node capability: %w", err)
+		}
+		if !wirecodec.HasCapability(node.Capabilities, wirecodec.CapRuntimeProfilesV1) {
+			return fmt.Errorf(
+				"remote node %q does not advertise the %q capability; update the node panel and wait for a successful heartbeat",
+				node.Name,
+				wirecodec.CapRuntimeProfilesV1,
+			)
+		}
 	}
 
 	candidateBindings, err := runtimeBindingsForInbound(candidate)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
+	"github.com/mhsanaei/3x-ui/v3/internal/util/wirecodec"
 )
 
 func runtimeProfileInbound(port int, profilePort int) *model.Inbound {
@@ -137,15 +138,119 @@ func TestAddInboundRuntimeProfileRequestsFullReconcile(t *testing.T) {
 	}
 }
 
-func TestAddInboundRejectsRuntimeProfileOnRemoteNodeUntilCapabilityPhase(t *testing.T) {
+func TestAddInboundRejectsRuntimeProfileOnLegacyRemoteNode(t *testing.T) {
 	setupConflictDB(t)
-	nodeID := 42
+	node := &model.Node{
+		Name:            "legacy-node",
+		Address:         "legacy.example.test",
+		Port:            443,
+		Enable:          true,
+		Status:          "online",
+		Capabilities:    wirecodec.CapZstd,
+		InboundSyncMode: "all",
+	}
+	if err := database.GetDB().Create(node).Error; err != nil {
+		t.Fatal(err)
+	}
 	candidate := runtimeProfileInbound(22937, 2087)
-	candidate.NodeID = &nodeID
+	candidate.NodeID = &node.Id
 
 	_, _, err := (&InboundService{}).AddInbound(candidate)
-	if err == nil || !strings.Contains(err.Error(), "remote nodes") {
-		t.Fatalf("AddInbound error = %v, want remote-node capability error", err)
+	if err == nil || !strings.Contains(err.Error(), wirecodec.CapRuntimeProfilesV1) {
+		t.Fatalf("AddInbound error = %v, want remote runtime-profile capability error", err)
+	}
+
+	var count int64
+	if dbErr := database.GetDB().Model(&model.Inbound{}).Count(&count).Error; dbErr != nil {
+		t.Fatal(dbErr)
+	}
+	if count != 0 {
+		t.Fatalf("capability-rejected inbound was persisted, count=%d", count)
+	}
+}
+
+func TestAddInboundAllowsRuntimeProfileOnCapableOfflineRemoteNode(t *testing.T) {
+	setupConflictDB(t)
+	node := &model.Node{
+		Name:            "capable-node",
+		Address:         "capable.example.test",
+		Port:            443,
+		Enable:          true,
+		Status:          "offline",
+		Capabilities:    wirecodec.AdvertisedCapabilities,
+		InboundSyncMode: "all",
+	}
+	if err := database.GetDB().Create(node).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	candidate := runtimeProfileInbound(22937, 2087)
+	candidate.NodeID = &node.Id
+	created, needRestart, err := (&InboundService{}).AddInbound(candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created.Id == 0 {
+		t.Fatal("remote runtime-profile inbound has no database id")
+	}
+	if needRestart {
+		t.Fatal("remote runtime-profile save must not restart the master Xray")
+	}
+
+	var storedNode model.Node
+	if err := database.GetDB().First(&storedNode, node.Id).Error; err != nil {
+		t.Fatal(err)
+	}
+	if !storedNode.ConfigDirty {
+		t.Fatal("offline capable node must be marked dirty for later reconcile")
+	}
+	if !strings.Contains(created.StreamSettings, `"id":"mobile-grpc"`) {
+		t.Fatalf("runtime profile metadata was not preserved: %s", created.StreamSettings)
+	}
+}
+
+func TestAddInboundRemoteRuntimeTLSPathsAreValidatedOnNodeNotMaster(t *testing.T) {
+	setupConflictDB(t)
+	node := &model.Node{
+		Name:            "tls-node",
+		Address:         "tls.example.test",
+		Port:            443,
+		Enable:          true,
+		Status:          "offline",
+		Capabilities:    wirecodec.AdvertisedCapabilities,
+		InboundSyncMode: "all",
+	}
+	if err := database.GetDB().Create(node).Error; err != nil {
+		t.Fatal(err)
+	}
+
+	candidate := runtimeProfileInbound(22937, 2087)
+	candidate.NodeID = &node.Id
+	var stream map[string]any
+	if err := json.Unmarshal([]byte(candidate.StreamSettings), &stream); err != nil {
+		t.Fatal(err)
+	}
+	profile := stream["externalProxy"].([]any)[0].(map[string]any)
+	profile["security"] = "tls"
+	runtimeMetadata := profile["runtime"].(map[string]any)
+	runtimeMetadata["tlsSettings"] = map[string]any{
+		"certificates": []any{map[string]any{
+			"certificateFile": "/etc/remote-only/fullchain.pem",
+			"keyFile":         "/etc/remote-only/private.key",
+		}},
+	}
+	raw, err := json.Marshal(stream)
+	if err != nil {
+		t.Fatal(err)
+	}
+	candidate.StreamSettings = string(raw)
+
+	created, _, err := (&InboundService{}).AddInbound(candidate)
+	if err != nil {
+		t.Fatalf("master incorrectly required remote certificate files locally: %v", err)
+	}
+	if created.Id == 0 {
+		t.Fatal("remote TLS runtime-profile inbound was not persisted")
 	}
 }
 

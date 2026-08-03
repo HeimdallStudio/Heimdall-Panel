@@ -23,6 +23,7 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/util/common"
 	"github.com/mhsanaei/3x-ui/v3/internal/util/json_util"
 	"github.com/mhsanaei/3x-ui/v3/internal/util/netsafe"
+	"github.com/mhsanaei/3x-ui/v3/internal/util/wirecodec"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/runtime"
 	"github.com/mhsanaei/3x-ui/v3/internal/xray"
 
@@ -30,15 +31,17 @@ import (
 )
 
 type HeartbeatPatch struct {
-	Status        string
-	LastHeartbeat int64
-	LatencyMs     int
-	XrayVersion   string
-	PanelVersion  string
-	Guid          string
-	CpuPct        float64
-	MemPct        float64
-	UptimeSecs    uint64
+	Status            string
+	LastHeartbeat     int64
+	LatencyMs         int
+	XrayVersion       string
+	PanelVersion      string
+	Capabilities      string
+	CapabilitiesKnown bool
+	Guid              string
+	CpuPct            float64
+	MemPct            float64
+	UptimeSecs        uint64
 	// NetUp/NetDown are the node's current interface throughput (bytes/sec),
 	// summed over non-virtual interfaces, read from its status response.
 	NetUp     uint64
@@ -685,6 +688,14 @@ func (s *NodeService) UpdatePanels(ids []int, dev bool) ([]NodeUpdateResult, err
 
 func (s *NodeService) UpdateHeartbeat(id int, p HeartbeatPatch) error {
 	db := database.GetDB()
+	capabilitiesChanged := false
+	if p.CapabilitiesKnown {
+		var current model.Node
+		if err := db.Select("capabilities").First(&current, id).Error; err != nil {
+			return err
+		}
+		capabilitiesChanged = current.Capabilities != p.Capabilities
+	}
 	updates := map[string]any{
 		"status":         p.Status,
 		"last_heartbeat": p.LastHeartbeat,
@@ -700,6 +711,9 @@ func (s *NodeService) UpdateHeartbeat(id int, p HeartbeatPatch) error {
 		"xray_state":     p.XrayState,
 		"xray_error":     p.XrayError,
 	}
+	if p.CapabilitiesKnown {
+		updates["capabilities"] = p.Capabilities
+	}
 	// Only learn the GUID; never clear a known one if an old-build node (or a
 	// failed probe) reports none, so the stable identity survives blips.
 	if p.Guid != "" {
@@ -708,6 +722,11 @@ func (s *NodeService) UpdateHeartbeat(id int, p HeartbeatPatch) error {
 	}
 	if err := db.Model(model.Node{}).Where("id = ?", id).Updates(updates).Error; err != nil {
 		return err
+	}
+	if capabilitiesChanged {
+		if mgr := runtime.GetManager(); mgr != nil {
+			mgr.InvalidateNode(id)
+		}
 	}
 	if p.Status == "online" {
 		now := time.Unix(p.LastHeartbeat, 0)
@@ -996,6 +1015,8 @@ func (s *NodeService) probe(ctx context.Context, n *model.Node, proxyURL string)
 		patch.LastError = fmt.Sprintf("HTTP %d from remote panel", resp.StatusCode)
 		return patch, errors.New(patch.LastError)
 	}
+	patch.Capabilities = strings.TrimSpace(resp.Header.Get(wirecodec.CapsHeader))
+	patch.CapabilitiesKnown = true
 
 	var envelope struct {
 		Success bool   `json:"success"`

@@ -45,8 +45,11 @@ func TestConfigEnvelope_DecompressesAndVerifies(t *testing.T) {
 	if w.Body.String() != string(orig) {
 		t.Fatal("handler did not receive the decompressed body")
 	}
-	if !strings.Contains(w.Header().Get(wirecodec.CapsHeader), wirecodec.CapZstd) {
+	if !wirecodec.HasCapability(w.Header().Get(wirecodec.CapsHeader), wirecodec.CapZstd) {
 		t.Fatal("response must advertise the zstd capability")
+	}
+	if !wirecodec.HasCapability(w.Header().Get(wirecodec.CapsHeader), wirecodec.CapRuntimeProfilesV1) {
+		t.Fatal("response must advertise the remote runtime-profile capability")
 	}
 }
 
