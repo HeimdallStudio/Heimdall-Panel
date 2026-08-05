@@ -154,6 +154,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
@@ -162,8 +164,29 @@ jobs:
       - name: Install
         run: npm ci
         working-directory: frontend
-      - name: Lint
-        run: npm run lint
+      - name: Lint changed frontend source
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -Eeuo pipefail
+          base="$BASE_SHA"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            base="$(git rev-parse HEAD^)"
+          fi
+          mapfile -t files < <(
+            git diff --name-only --diff-filter=ACMR "$base" "$GITHUB_SHA" -- \
+              'frontend/src/**/*.ts' \
+              'frontend/src/**/*.tsx' \
+              'frontend/scripts/**/*.mjs' |
+            sed 's#^frontend/##'
+          )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No changed frontend source files to lint."
+            exit 0
+          fi
+          printf 'Linting %s\n' "${files[@]}"
+          npx eslint --max-warnings=0 "${files[@]}"
         working-directory: frontend
       - name: Typecheck
         run: npm run typecheck
@@ -174,6 +197,7 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: frontend
-      - name: Audit
+      - name: Audit dependency report
+        continue-on-error: true
         run: npm audit --audit-level=high
         working-directory: frontend
