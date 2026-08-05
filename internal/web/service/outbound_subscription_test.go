@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
@@ -179,4 +180,40 @@ func outboundsContainTag(outbounds []any, tag string) bool {
 		}
 	}
 	return false
+}
+
+func TestFilterOutboundsRejectedByCore_KeepsCustomCorePlaintextVLESS(t *testing.T) {
+	outbounds := []any{
+		map[string]any{
+			"protocol": "vless",
+			"tag":      "legacy-vless",
+			"settings": map[string]any{
+				"address":    "1.2.3.4",
+				"port":       443,
+				"id":         "b831381d-6324-4d53-ad4f-8cda48b30811",
+				"encryption": "none",
+			},
+			"streamSettings": map[string]any{
+				"network":  "tcp",
+				"security": "none",
+			},
+		},
+		map[string]any{
+			"protocol": "definitely-not-a-protocol",
+			"tag":      "invalid",
+			"settings": map[string]any{},
+		},
+	}
+
+	kept, dropped := filterOutboundsRejectedByCore("test", outbounds)
+	if len(kept) != 1 {
+		t.Fatalf("kept %d outbounds, want 1", len(kept))
+	}
+	keptMap, ok := kept[0].(map[string]any)
+	if !ok || keptMap["tag"] != "legacy-vless" {
+		t.Fatalf("unexpected kept outbound: %#v", kept[0])
+	}
+	if len(dropped) != 1 || !strings.HasPrefix(dropped[0], "invalid:") {
+		t.Fatalf("unexpected dropped list: %v", dropped)
+	}
 }

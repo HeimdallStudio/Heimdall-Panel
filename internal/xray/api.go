@@ -171,16 +171,52 @@ func (x *XrayAPI) DelInbound(tag string) error {
 	return err
 }
 
-// ValidateOutboundConfig builds an outbound JSON object through the vendored
-// xray-core config loader, surfacing the exact error the core would raise at
-// startup — notably v26.7.11's refusal of unencrypted vless/trojan outbounds
-// whose server address is a public IP or domain.
-func ValidateOutboundConfig(outbound []byte) error {
+const legacyPublicPlaintextVLESSGuard = "vless without TLS or other encryption is prohibited unless the server address is a private IP or domain"
+
+// embeddedOutboundBuildError validates an outbound through the xray-core
+// library linked into the panel. The deployed Heimdall core can intentionally
+// differ from that library, so compatibility exceptions must be handled by the
+// callers below rather than by weakening unrelated validation errors.
+func embeddedOutboundBuildError(outbound []byte) error {
 	detour := new(conf.OutboundDetourConfig)
 	if err := json.Unmarshal(outbound, detour); err != nil {
 		return err
 	}
 	_, err := detour.Build()
+	return err
+}
+
+// isLegacyPublicPlaintextVLESSGuard reports the one embedded-core rejection
+// that is incompatible with Heimdall's deployed custom core. The protocol
+// check prevents the exception from swallowing an unrelated error that merely
+// happens to contain the same text.
+func isLegacyPublicPlaintextVLESSGuard(outbound []byte, err error) bool {
+	if err == nil || !strings.Contains(err.Error(), legacyPublicPlaintextVLESSGuard) {
+		return false
+	}
+	var meta struct {
+		Protocol string `json:"protocol"`
+	}
+	return json.Unmarshal(outbound, &meta) == nil && strings.EqualFold(strings.TrimSpace(meta.Protocol), "vless")
+}
+
+// OutboundRequiresExternalCoreRestart reports whether an outbound can only be
+// built by Heimdall's deployed custom core. Such an outbound must bypass the
+// panel's embedded builder during hot apply and reach the external core through
+// a full process restart.
+func OutboundRequiresExternalCoreRestart(outbound []byte) bool {
+	err := embeddedOutboundBuildError(outbound)
+	return isLegacyPublicPlaintextVLESSGuard(outbound, err)
+}
+
+// ValidateOutboundConfig validates an outbound through the xray-core library
+// linked into the panel while preserving the deployed custom core's support for
+// public plaintext VLESS outbounds. Every other parse/build error remains fatal.
+func ValidateOutboundConfig(outbound []byte) error {
+	err := embeddedOutboundBuildError(outbound)
+	if isLegacyPublicPlaintextVLESSGuard(outbound, err) {
+		return nil
+	}
 	return err
 }
 

@@ -343,3 +343,25 @@ func TestComputeHotDiff_RoutingStrategyChangeNeedsRestart(t *testing.T) {
 		t.Fatal("domainStrategy change must force a restart")
 	}
 }
+
+func TestComputeHotDiff_PublicPlaintextVLESSNeedsRestart(t *testing.T) {
+	publicPlaintext := `{"protocol":"vless","tag":"legacy-vless","settings":{"address":"1.2.3.4","port":443,"id":"` + testVLESSID + `","encryption":"none"},"streamSettings":{"network":"tcp","security":"none"}}`
+
+	t.Run("added outbound", func(t *testing.T) {
+		newCfg := makeHotConfig()
+		newCfg.OutboundConfigs = json_util.RawMessage(`[{"protocol":"freedom","tag":"direct"},{"protocol":"blackhole","tag":"blocked"},` + publicPlaintext + `]`)
+		if _, ok := ComputeHotDiff(makeHotConfig(), newCfg); ok {
+			t.Fatal("adding public plaintext VLESS must force a full restart")
+		}
+	})
+
+	t.Run("changed outbound", func(t *testing.T) {
+		oldCfg := makeHotConfig()
+		oldCfg.OutboundConfigs = json_util.RawMessage(`[{"protocol":"freedom","tag":"direct"},{"protocol":"blackhole","tag":"blocked"},{"protocol":"socks","tag":"legacy-vless"}]`)
+		newCfg := makeHotConfig()
+		newCfg.OutboundConfigs = json_util.RawMessage(`[{"protocol":"freedom","tag":"direct"},{"protocol":"blackhole","tag":"blocked"},` + publicPlaintext + `]`)
+		if _, ok := ComputeHotDiff(oldCfg, newCfg); ok {
+			t.Fatal("changing an outbound to public plaintext VLESS must force a full restart")
+		}
+	})
+}

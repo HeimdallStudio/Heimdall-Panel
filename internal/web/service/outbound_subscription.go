@@ -20,10 +20,10 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/xray"
 )
 
-// filterOutboundsRejectedByCore drops outbounds the vendored xray-core config
-// loader refuses to build — since v26.7.11 that includes unencrypted
-// vless/trojan outbounds to public addresses — because one such outbound in
-// the merged config would keep the whole core from starting.
+// filterOutboundsRejectedByCore drops outbounds that remain invalid after the
+// panel's compatibility-aware validation. Public plaintext VLESS is retained
+// because Heimdall's deployed custom core supports it; malformed or otherwise
+// unsupported outbounds are still excluded before config merge.
 func filterOutboundsRejectedByCore(label string, outbounds []any) ([]any, []string) {
 	kept := make([]any, 0, len(outbounds))
 	var dropped []string
