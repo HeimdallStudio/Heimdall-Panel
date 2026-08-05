@@ -137,7 +137,7 @@ test -f "$BUILD_SRC/internal/web/dist/index.html" ||
 
 printf 'FRONTEND_BUILD=pass\n'
 
-printf '\n===== BUILD VALIDATED LIVE-PARITY PANEL =====\n'
+printf '\n===== BUILD VALIDATED STRIPPED RELEASE PANEL =====\n'
 
 PANEL_BINARY="$WORK/x-ui"
 
@@ -153,6 +153,7 @@ PANEL_BINARY="$WORK/x-ui"
     go build \
         -trimpath \
         -buildvcs=false \
+        -ldflags='-s -w' \
         -o "$PANEL_BINARY" \
         github.com/mhsanaei/3x-ui/v3
 )
@@ -168,10 +169,10 @@ PANEL_SHA256="$(
 )"
 
 test "$PANEL_SHA256" = "$EXPECTED_PANEL_SHA256" ||
-    fail "release panel SHA256 does not match validated live panel"
+    fail "release panel SHA256 does not match validated stripped panel"
 
 printf 'PANEL_SHA256=%s\n' "$PANEL_SHA256"
-printf 'PANEL_LIVE_PARITY=yes\n'
+printf 'PANEL_RELEASE_PARITY=yes\n'
 
 printf '\n===== ASSEMBLE RELEASE PAYLOAD =====\n'
 
@@ -265,7 +266,7 @@ SOURCE_TREE=$SOURCE_TREE
 SOURCE_DATE_EPOCH=$SOURCE_DATE_EPOCH
 BUILD_DATE=$BUILD_DATE
 ARCH=linux-amd64
-PANEL_BUILD_RECIPE=validated-live-parity-cgo1-unstripped
+PANEL_BUILD_RECIPE=validated-release-cgo1-stripped
 PANEL_SHA256=$PANEL_SHA256
 CUSTOM_XRAY_SHA256=$ACTUAL_CUSTOM_XRAY_SHA256
 MANIFEST
@@ -423,8 +424,8 @@ grep -q 'dynamically linked' ||
     fail "verified panel binary is not dynamically linked"
 
 file "$VERIFY/x-ui/x-ui" |
-grep -q 'not stripped' ||
-    fail "verified panel binary is unexpectedly stripped"
+grep -qE ', stripped$' ||
+    fail "verified panel binary is not stripped"
 
 go version -m "$VERIFY/x-ui/x-ui" |
 grep -q $'build\tCGO_ENABLED=1' ||
@@ -445,8 +446,8 @@ printf 'RELEASE_VERSION=%s\n' "$VERSION"
 printf 'RELEASE_ARCH=linux-amd64\n'
 printf 'SOURCE_HEAD=%s\n' "$SOURCE_HEAD"
 printf 'SOURCE_TREE=%s\n' "$SOURCE_TREE"
-printf 'PANEL_BUILD_RECIPE=validated-live-parity-cgo1-unstripped\n'
-printf 'PANEL_LIVE_PARITY=yes\n'
+printf 'PANEL_BUILD_RECIPE=validated-release-cgo1-stripped\n'
+printf 'PANEL_RELEASE_PARITY=yes\n'
 printf 'PANEL_SHA256=%s\n' "$PANEL_SHA256"
 printf 'CUSTOM_XRAY_SHA256=%s\n' "$VERIFIED_CUSTOM_XRAY_SHA256"
 printf 'CUSTOM_XRAY_MATCH=yes\n'

@@ -16,7 +16,7 @@ Notable Heimdall changes are documented here.
 
 - Negotiated runtime-profile capabilities with remote nodes so mixed-version deployments select compatible synchronization behavior.
 - Applied public plaintext VLESS outbounds through a full restart of the audited custom Xray core instead of the panel's embedded hot-apply validator.
-- Updated the audited linux-amd64 release recipe to reproduce the live CGO-enabled, unstripped panel binary and package the exact custom Xray runtime.
+- Updated the audited linux-amd64 release recipe to reproduce the release CGO-enabled, stripped panel binary and package the exact custom Xray runtime.
 
 ### Fixed
 
