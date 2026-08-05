@@ -17,7 +17,7 @@ import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import type { NodeRecord } from '@/api/queries/useNodesQuery';
 import type { RemoteInboundOption } from '@/api/queries/useNodeMutations';
 import type { Msg } from '@/utils';
-import { NodeFormSchema, type NodeFormValues, type ProbeResult } from '@/schemas/node';
+import { createNodeFormDefaultValues, NodeFormSchema, type NodeFormValues, type ProbeResult } from '@/schemas/node';
 import { FormField, rhfZodValidate } from '@/components/form/rhf';
 import { useOutboundTagGroups } from '@/api/queries/useOutboundTags';
 import './NodeFormModal.css';
@@ -35,26 +35,6 @@ interface NodeFormModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function defaultValues(): NodeFormValues {
-  return {
-    id: 0,
-    name: '',
-    remark: '',
-    scheme: 'https',
-    address: '',
-    port: 2053,
-    basePath: '/',
-    apiToken: '',
-    enable: true,
-    allowPrivateAddress: false,
-    tlsVerifyMode: 'verify',
-    pinnedCertSha256: '',
-    inboundSyncMode: 'all',
-    inboundTags: [],
-    outboundTag: '',
-  };
-}
-
 export default function NodeFormModal({
   open,
   mode,
@@ -66,7 +46,7 @@ export default function NodeFormModal({
   onOpenChange,
 }: NodeFormModalProps) {
   const { t } = useTranslation();
-  const methods = useForm<NodeFormValues>({ defaultValues: defaultValues() });
+  const methods = useForm<NodeFormValues>({ defaultValues: createNodeFormDefaultValues() });
   const [messageApi, messageContextHolder] = message.useMessage();
 
   const [submitting, setSubmitting] = useState(false);
@@ -77,7 +57,8 @@ export default function NodeFormModal({
   const [testResult, setTestResult] = useState<ProbeResult | null>(null);
   const scheme = useWatch({ control: methods.control, name: 'scheme' }) ?? 'https';
   const tlsVerifyMode = useWatch({ control: methods.control, name: 'tlsVerifyMode' }) ?? 'verify';
-  const inboundSyncMode = useWatch({ control: methods.control, name: 'inboundSyncMode' }) ?? 'all';
+  const inboundSyncMode = useWatch({ control: methods.control, name: 'inboundSyncMode' }) ?? 'selected';
+  const inboundTags = useWatch({ control: methods.control, name: 'inboundTags' }) ?? [];
   const { data: outboundGroups } = useOutboundTagGroups({ excludeBlackhole: true });
 
   // Outbounds and balancers share one picker (like the panel-outbound selector);
@@ -98,7 +79,7 @@ export default function NodeFormModal({
 
   useEffect(() => {
     if (!open) return;
-    const base = defaultValues();
+    const base = createNodeFormDefaultValues();
     const next: NodeFormValues = mode === 'edit' && node
       ? {
         ...base,
@@ -394,37 +375,56 @@ export default function NodeFormModal({
             >
               <Select
                 options={[
-                  { value: 'all', label: t('pages.nodes.allInbounds') },
                   { value: 'selected', label: t('pages.nodes.selectedInbounds') },
+                  { value: 'all', label: t('pages.nodes.allInbounds') },
                 ]}
               />
             </FormField>
 
+            {inboundSyncMode === 'all' && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 16 }}
+                title={t('pages.nodes.allInboundsWarning')}
+              />
+            )}
+
             {inboundSyncMode === 'selected' && (
-              <FormField
-                label={t('pages.nodes.inboundTags')}
-                name="inboundTags"
-                tooltip={t('pages.nodes.inboundTagsHint')}
-              >
-                <Select
-                  mode="multiple"
-                  allowClear
-                  loading={fetchingInbounds}
-                  placeholder={t('pages.nodes.inboundTagsPlaceholder')}
-                  popupRender={(menu) => (
-                    <>
-                      <Button type="text" block loading={fetchingInbounds} onClick={onFetchInbounds}>
-                        {t('pages.nodes.loadInbounds')}
-                      </Button>
-                      {menu}
-                    </>
-                  )}
-                  options={inboundOptions.map((inbound) => ({
-                    value: inbound.tag,
-                    label: `${inbound.remark || inbound.tag}${inbound.protocol ? ` (${inbound.protocol}:${inbound.port || 0})` : ''}`,
-                  }))}
-                />
-              </FormField>
+              <>
+                {inboundTags.length === 0 && (
+                  <Alert
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                    title={t('pages.nodes.noInboundsSelected')}
+                  />
+                )}
+                <FormField
+                  label={t('pages.nodes.inboundTags')}
+                  name="inboundTags"
+                  tooltip={t('pages.nodes.inboundTagsHint')}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    loading={fetchingInbounds}
+                    placeholder={t('pages.nodes.inboundTagsPlaceholder')}
+                    popupRender={(menu) => (
+                      <>
+                        <Button type="text" block loading={fetchingInbounds} onClick={onFetchInbounds}>
+                          {t('pages.nodes.loadInbounds')}
+                        </Button>
+                        {menu}
+                      </>
+                    )}
+                    options={inboundOptions.map((inbound) => ({
+                      value: inbound.tag,
+                      label: `${inbound.remark || inbound.tag}${inbound.protocol ? ` (${inbound.protocol}:${inbound.port || 0})` : ''}`,
+                    }))}
+                  />
+                </FormField>
+              </>
             )}
 
             <div className="test-row">

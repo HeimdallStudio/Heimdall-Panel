@@ -182,6 +182,45 @@ func TestNodeService_NormalizeInboundSelection(t *testing.T) {
 	}
 }
 
+func TestNodeService_NormalizeDefaultsInboundImportToSelected(t *testing.T) {
+	s := &NodeService{}
+	n := &model.Node{
+		Name:        "n",
+		Address:     "example.com",
+		Port:        443,
+		InboundTags: []string{"managed-a"},
+	}
+	if err := s.normalize(n); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n.InboundSyncMode != "selected" {
+		t.Fatalf("InboundSyncMode = %q, want selected", n.InboundSyncMode)
+	}
+	if len(n.InboundTags) != 1 || n.InboundTags[0] != "managed-a" {
+		t.Fatalf("InboundTags = %#v, want [managed-a]", n.InboundTags)
+	}
+}
+
+func TestNodeService_NormalizeExplicitAllImportsEverything(t *testing.T) {
+	s := &NodeService{}
+	n := &model.Node{
+		Name:            "n",
+		Address:         "example.com",
+		Port:            443,
+		InboundSyncMode: "all",
+		InboundTags:     []string{"ignored"},
+	}
+	if err := s.normalize(n); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n.InboundSyncMode != "all" {
+		t.Fatalf("InboundSyncMode = %q, want all", n.InboundSyncMode)
+	}
+	if n.InboundTags != nil {
+		t.Fatalf("InboundTags = %#v, want nil in all mode", n.InboundTags)
+	}
+}
+
 func TestFilterNodeSnapshot(t *testing.T) {
 	snapshot := func() *runtime.TrafficSnapshot {
 		return &runtime.TrafficSnapshot{Inbounds: []*model.Inbound{

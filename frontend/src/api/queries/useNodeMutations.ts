@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import { HttpUtil, Msg } from '@/utils';
 import { parseMsg } from '@/utils/zodValidate';
@@ -22,12 +22,16 @@ export interface RemoteInboundOption {
   port?: number;
 }
 
+export function invalidateNodeMutationQueries(
+  queryClient: Pick<QueryClient, 'invalidateQueries'>,
+) {
+  queryClient.invalidateQueries({ queryKey: keys.nodes.root() });
+  queryClient.invalidateQueries({ queryKey: keys.inbounds.root() });
+}
+
 export function useNodeMutations() {
   const queryClient = useQueryClient();
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: keys.nodes.root() });
-    queryClient.invalidateQueries({ queryKey: keys.inbounds.options() });
-  };
+  const invalidate = () => invalidateNodeMutationQueries(queryClient);
 
   const createMut = useMutation({
     mutationFn: (payload: Partial<NodeRecord>) =>

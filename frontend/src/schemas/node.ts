@@ -71,7 +71,7 @@ export const NodeFormSchema = z.object({
   allowPrivateAddress: z.boolean(),
   tlsVerifyMode: z.enum(['verify', 'skip', 'pin', 'mtls']),
   pinnedCertSha256: z.string().optional().default(''),
-  inboundSyncMode: z.enum(['all', 'selected']).optional().default('all'),
+  inboundSyncMode: z.enum(['all', 'selected']).optional().default('selected'),
   // Unmounted when sync mode is "all" (absent from antd onFinish values) and
   // serialized as null by the backend for a nil slice — tolerate both.
   inboundTags: z.array(z.string()).nullish().transform((tags) => tags ?? []),
@@ -89,3 +89,23 @@ export const NodeFormSchema = z.object({
 export type NodeRecord = z.infer<typeof NodeRecordSchema>;
 export type ProbeResult = z.infer<typeof ProbeResultSchema>;
 export type NodeFormValues = z.infer<typeof NodeFormSchema>;
+
+export function createNodeFormDefaultValues(): NodeFormValues {
+  return {
+    id: 0,
+    name: '',
+    remark: '',
+    scheme: 'https',
+    address: '',
+    port: 2053,
+    basePath: '/',
+    apiToken: '',
+    enable: true,
+    allowPrivateAddress: false,
+    tlsVerifyMode: 'verify',
+    pinnedCertSha256: '',
+    inboundSyncMode: 'selected',
+    inboundTags: [],
+    outboundTag: '',
+  };
+}

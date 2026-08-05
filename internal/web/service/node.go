@@ -391,10 +391,13 @@ func (s *NodeService) normalize(n *model.Node) error {
 		return common.NewError("mtls requires the node scheme to be https")
 	}
 	n.PinnedCertSha256 = strings.TrimSpace(n.PinnedCertSha256)
-	if n.InboundSyncMode != "selected" {
-		n.InboundSyncMode = "all"
+	if n.InboundSyncMode == "all" {
 		n.InboundTags = nil
 	} else {
+		// Safe default: an omitted mode must not import every existing inbound
+		// and client from a newly registered node. Existing node updates that
+		// omit this field are handled in Update before normalization.
+		n.InboundSyncMode = "selected"
 		seen := make(map[string]struct{}, len(n.InboundTags))
 		tags := make([]string, 0, len(n.InboundTags))
 		for _, tag := range n.InboundTags {
@@ -427,7 +430,136 @@ func (s *NodeService) Create(n *model.Node) error {
 	return db.Create(n).Error
 }
 
+// nodeInboundSelectionAliases returns every tag spelling that can refer to a
+// selected remote inbound. Central rows may carry the node prefix while the
+// node API reports the raw tag (or vice versa), so local mirror cleanup must use
+// the same prefix-flip equivalence as adoption and reconciliation.
+func nodeInboundSelectionAliases(nodeID int, tags []string) map[string]struct{} {
+	selected := make(map[string]struct{}, len(tags)*2)
+	prefix := nodeTagPrefix(&nodeID)
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" {
+			continue
+		}
+		selected[tag] = struct{}{}
+		if prefix == "" {
+			continue
+		}
+		if stripped, found := strings.CutPrefix(tag, prefix); found {
+			selected[stripped] = struct{}{}
+		} else {
+			selected[prefix+tag] = struct{}{}
+		}
+	}
+	return selected
+}
+
+// detachUnselectedNodeInboundsTx removes imported central mirror rows that no
+// longer belong to a node's selected import scope. It is deliberately
+// local-only: no runtime method is called, so the real inbound on the node is
+// left untouched.
+//
+// Run this on every selected-mode update, not only an observed scope shrink.
+// That also repairs stale attachments created by older builds where the policy
+// is already selected+empty.
+func (s *NodeService) detachUnselectedNodeInboundsTx(tx *gorm.DB, nodeID int, incoming *model.Node) ([]string, error) {
+	if incoming == nil || incoming.InboundSyncMode != "selected" || nodeID <= 0 {
+		return nil, nil
+	}
+	if tx == nil {
+		tx = database.GetDB()
+	}
+
+	selected := nodeInboundSelectionAliases(nodeID, incoming.InboundTags)
+	var attached []model.Inbound
+	if err := tx.Select("id", "tag").
+		Where("node_id = ?", nodeID).
+		Order("id ASC").
+		Find(&attached).Error; err != nil {
+		return nil, err
+	}
+
+	inboundSvc := InboundService{}
+	detachedTags := make([]string, 0)
+	for i := range attached {
+		ib := &attached[i]
+		if _, keep := selected[ib.Tag]; keep {
+			continue
+		}
+
+		// Do not call InboundService.DelInbound here. For node-backed rows that
+		// path intentionally sends a remote DelInbound RPC after commit.
+		if err := inboundSvc.clientService.DetachInbound(tx, ib.Id); err != nil {
+			return nil, err
+		}
+		if err := tx.Where("inbound_id = ?", ib.Id).
+			Delete(&model.ClientInboundTraffic{}).Error; err != nil {
+			return nil, err
+		}
+		if err := tx.Where("inbound_id = ?", ib.Id).
+			Delete(&model.Host{}).Error; err != nil {
+			return nil, err
+		}
+		if err := tx.Where("master_id = ? OR child_id = ?", ib.Id, ib.Id).
+			Delete(&model.InboundFallback{}).Error; err != nil {
+			return nil, err
+		}
+		if err := tx.Where("id = ? AND node_id = ?", ib.Id, nodeID).
+			Delete(&model.Inbound{}).Error; err != nil {
+			return nil, err
+		}
+		detachedTags = append(detachedTags, ib.Tag)
+	}
+	return detachedTags, nil
+}
+
+// nodeInboundImportScopeExpanded reports whether a node edit introduces remote
+// inbound tags that may not have central rows yet. Those tags are import
+// candidates, not stale desired state. Resetting the first-adoption guard lets
+// the dirty reconcile push existing central configuration without sweeping the
+// newly selected remote tags before the following snapshot can adopt them.
+func nodeInboundImportScopeExpanded(existing, incoming *model.Node) bool {
+	if existing == nil || incoming == nil {
+		return false
+	}
+
+	if incoming.InboundSyncMode == "all" {
+		return existing.InboundSyncMode != "all"
+	}
+
+	if incoming.InboundSyncMode != "selected" || len(incoming.InboundTags) == 0 {
+		return false
+	}
+
+	if existing.InboundSyncMode != "selected" {
+		return true
+	}
+
+	existingTags := make(map[string]struct{}, len(existing.InboundTags))
+	for _, tag := range existing.InboundTags {
+		existingTags[tag] = struct{}{}
+	}
+	for _, tag := range incoming.InboundTags {
+		if _, found := existingTags[tag]; !found {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *NodeService) Update(id int, in *model.Node) error {
+	db := database.GetDB()
+	existing := &model.Node{}
+	if err := db.Where("id = ?", id).First(existing).Error; err != nil {
+		return err
+	}
+	if strings.TrimSpace(in.InboundSyncMode) == "" {
+		// Preserve the stored import policy for older API clients that do not
+		// send the newer inboundSyncMode/inboundTags fields during node edits.
+		in.InboundSyncMode = existing.InboundSyncMode
+		in.InboundTags = append([]string(nil), existing.InboundTags...)
+	}
 	if err := s.normalize(in); err != nil {
 		return err
 	}
@@ -435,11 +567,7 @@ func (s *NodeService) Update(id int, in *model.Node) error {
 	if err != nil {
 		return err
 	}
-	db := database.GetDB()
-	existing := &model.Node{}
-	if err := db.Where("id = ?", id).First(existing).Error; err != nil {
-		return err
-	}
+	resetInboundAdoption := nodeInboundImportScopeExpanded(existing, in)
 	updates := map[string]any{
 		"name":                  in.Name,
 		"remark":                in.Remark,
@@ -456,13 +584,29 @@ func (s *NodeService) Update(id int, in *model.Node) error {
 		"inbound_tags":          string(inboundTagsJSON),
 		"outbound_tag":          in.OutboundTag,
 	}
+
+	if resetInboundAdoption {
+		updates["inbounds_adopted_at"] = int64(0)
+	}
+	var detachedInboundTags []string
 	if err := db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(model.Node{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+			return err
+		}
+		var err error
+		detachedInboundTags, err = s.detachUnselectedNodeInboundsTx(tx, id, in)
+		if err != nil {
 			return err
 		}
 		return s.MarkNodeDirtyTx(tx, id)
 	}); err != nil {
 		return err
+	}
+	if len(detachedInboundTags) > 0 {
+		logger.Infof(
+			"node update: removed %d unselected imported inbound(s) from the main panel for node %d: %s",
+			len(detachedInboundTags), id, strings.Join(detachedInboundTags, ", "),
+		)
 	}
 	if mgr := runtime.GetManager(); mgr != nil {
 		mgr.InvalidateNode(id)

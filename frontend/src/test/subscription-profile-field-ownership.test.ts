@@ -120,7 +120,7 @@ describe('subscription profile field ownership', () => {
     expect(profile).toContain('normalizedRuntimeMetadata');
     expect(profile).toContain('isModernSubscriptionProfile');
     expect(profile).toContain('hasAutomaticRuntimeMarker');
-    expect(modal).toContain('normalizeSubscriptionProfilesForSave');
+    expect(modal).toContain('normalizeSubscriptionProfilesForProtocolSave');
     expect(modal).toContain('findSubscriptionProfileRuntimeConflicts');
     expect(planner).toContain('!isModernSubscriptionProfile(profile)');
     expect(planner).toContain('!hasAutomaticRuntimeMarker(profile)');
@@ -172,7 +172,7 @@ describe('subscription profile field ownership', () => {
       'src/pages/inbounds/form/transport/subscription-profile-editor.tsx',
     );
 
-    expect(modal).toContain('normalizeSubscriptionProfilesForSave');
+    expect(modal).toContain('normalizeSubscriptionProfilesForProtocolSave');
     expect(modal).toContain('findSubscriptionProfileRuntimeConflicts');
     expect(editor).not.toContain('planSubscriptionProfileRuntimeTopology');
     expect(modal).toContain('externalProxy: [createSubscriptionProfileDraft(port)]');

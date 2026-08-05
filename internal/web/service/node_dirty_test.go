@@ -248,12 +248,14 @@ func TestNodeService_UpdateMarksNodeDirty(t *testing.T) {
 	db := database.GetDB()
 
 	node := &model.Node{
-		Name:     "n1",
-		Address:  "10.0.0.1",
-		Port:     2096,
-		ApiToken: "tok",
-		Enable:   true,
-		Status:   "online",
+		Name:            "n1",
+		Address:         "10.0.0.1",
+		Port:            2096,
+		ApiToken:        "tok",
+		Enable:          true,
+		Status:          "online",
+		InboundSyncMode: "selected",
+		InboundTags:     []string{"managed-a"},
 	}
 	if err := db.Create(node).Error; err != nil {
 		t.Fatalf("create node: %v", err)
@@ -285,5 +287,138 @@ func TestNodeService_UpdateMarksNodeDirty(t *testing.T) {
 	}
 	if got.Address != "10.0.0.2" || got.Port != 2097 {
 		t.Fatalf("node row not updated: address=%q port=%d", got.Address, got.Port)
+	}
+	if got.InboundSyncMode != "selected" {
+		t.Fatalf("omitted inbound sync mode changed stored mode to %q", got.InboundSyncMode)
+	}
+	if len(got.InboundTags) != 1 || got.InboundTags[0] != "managed-a" {
+		t.Fatalf("omitted inbound tags changed stored selection: %#v", got.InboundTags)
+	}
+}
+
+// Expanding the node import scope must temporarily re-arm the first-adoption
+// guard. Otherwise the dirty reconcile runs before the traffic snapshot and
+// treats newly selected remote-only tags as stale, deleting them from the node
+// before they can be imported into the central database.
+func TestNodeService_UpdateResetsAdoptionOnlyForImportExpansion(t *testing.T) {
+	setupConflictDB(t)
+	db := database.GetDB()
+	nodeSvc := NodeService{}
+
+	type testCase struct {
+		name          string
+		oldMode       string
+		oldTags       []string
+		newMode       string
+		newTags       []string
+		wantAdoptedAt int64
+	}
+
+	cases := []testCase{
+		{
+			name:          "selected tag added",
+			oldMode:       "selected",
+			oldTags:       []string{"test"},
+			newMode:       "selected",
+			newTags:       []string{"test", "jojo"},
+			wantAdoptedAt: 0,
+		},
+		{
+			name:          "selected set only reordered",
+			oldMode:       "selected",
+			oldTags:       []string{"test", "jojo"},
+			newMode:       "selected",
+			newTags:       []string{"jojo", "test"},
+			wantAdoptedAt: 200,
+		},
+		{
+			name:          "selected switches to all",
+			oldMode:       "selected",
+			oldTags:       []string{"test"},
+			newMode:       "all",
+			newTags:       nil,
+			wantAdoptedAt: 0,
+		},
+		{
+			name:          "all switches to nonempty selected",
+			oldMode:       "all",
+			oldTags:       nil,
+			newMode:       "selected",
+			newTags:       []string{"jojo"},
+			wantAdoptedAt: 0,
+		},
+		{
+			name:          "all switches to empty selected",
+			oldMode:       "all",
+			oldTags:       nil,
+			newMode:       "selected",
+			newTags:       nil,
+			wantAdoptedAt: 200,
+		},
+		{
+			name:          "all remains all",
+			oldMode:       "all",
+			oldTags:       nil,
+			newMode:       "all",
+			newTags:       nil,
+			wantAdoptedAt: 200,
+		},
+	}
+
+	for index, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			node := &model.Node{
+				Name:              "import-scope-" + tc.name,
+				Scheme:            "https",
+				Address:           "127.0.0.1",
+				Port:              22000 + index,
+				BasePath:          "/",
+				ApiToken:          "tok",
+				Enable:            true,
+				TlsVerifyMode:     "verify",
+				InboundSyncMode:   tc.oldMode,
+				InboundTags:       tc.oldTags,
+				InboundsAdoptedAt: 200,
+				Status:            "online",
+			}
+			if err := db.Create(node).Error; err != nil {
+				t.Fatalf("create node: %v", err)
+			}
+
+			edited := &model.Node{
+				Name:            node.Name,
+				Remark:          "edited",
+				Scheme:          node.Scheme,
+				Address:         node.Address,
+				Port:            node.Port,
+				BasePath:        node.BasePath,
+				ApiToken:        node.ApiToken,
+				Enable:          true,
+				TlsVerifyMode:   node.TlsVerifyMode,
+				InboundSyncMode: tc.newMode,
+				InboundTags:     tc.newTags,
+			}
+
+			if err := nodeSvc.Update(node.Id, edited); err != nil {
+				t.Fatalf("Update: %v", err)
+			}
+
+			var got model.Node
+			if err := db.First(&got, node.Id).Error; err != nil {
+				t.Fatalf("reload node: %v", err)
+			}
+
+			if got.InboundsAdoptedAt != tc.wantAdoptedAt {
+				t.Fatalf(
+					"InboundsAdoptedAt = %d, want %d",
+					got.InboundsAdoptedAt,
+					tc.wantAdoptedAt,
+				)
+			}
+
+			if !got.ConfigDirty {
+				t.Fatal("node update must remain config-dirty")
+			}
+		})
 	}
 }
