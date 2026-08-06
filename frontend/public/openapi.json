@@ -2747,6 +2747,20 @@
     },
     {
       "channel": "/ws",
+      "type": "presence",
+      "summary": "Authoritative local online-client snapshot pushed only when the set changes. An empty onlineClients array immediately clears stale online badges.",
+      "example": {
+        "type": "presence",
+        "payload": {
+          "onlineClients": [
+            "alice@example.test"
+          ]
+        },
+        "time": 1710000000000
+      }
+    },
+    {
+      "channel": "/ws",
       "type": "invalidate",
       "summary": "Instructs the UI to re-fetch a resource. Fired when another admin session modifies data (e.g. toggling inbound enable).",
       "example": {

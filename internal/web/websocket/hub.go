@@ -16,6 +16,7 @@ type MessageType string
 const (
 	MessageTypeStatus       MessageType = "status"
 	MessageTypeTraffic      MessageType = "traffic"
+	MessageTypePresence     MessageType = "presence"
 	MessageTypeInbounds     MessageType = "inbounds"
 	MessageTypeOutbounds    MessageType = "outbounds"
 	MessageTypeNodes        MessageType = "nodes"

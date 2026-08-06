@@ -1096,6 +1096,8 @@ func (s *InboundService) setRemoteTrafficLocked(nodeID int, snap *runtime.Traffi
 }
 
 func (s *InboundService) GetOnlineClients() []string {
+	lock.Lock()
+	defer lock.Unlock()
 	if p == nil {
 		return []string{}
 	}
@@ -1108,11 +1110,16 @@ func (s *InboundService) GetOnlineClients() []string {
 // node-id keying so a client three hops down is attributed to its real node,
 // not the intermediate one it was synced through.
 func (s *InboundService) GetOnlineClientsByGuid() map[string][]string {
+	lock.Lock()
 	if p == nil {
+		lock.Unlock()
 		return map[string][]string{}
 	}
 	out := p.GetMergedNodeTrees()
-	if local := p.GetLocalOnlineClients(); len(local) > 0 {
+	local := p.GetLocalOnlineClients()
+	lock.Unlock()
+
+	if len(local) > 0 {
 		if guid := s.panelGuid(); guid != "" {
 			out[guid] = mergeEmails(out[guid], local)
 		}
@@ -1125,10 +1132,14 @@ func (s *InboundService) GetOnlineClientsByGuid() map[string][]string {
 // report per-inbound activity, so a GUID missing from the map means "don't
 // gate" for that node's inbounds.
 func (s *InboundService) GetActiveInboundsByGuid() map[string][]string {
+	lock.Lock()
 	if p == nil {
+		lock.Unlock()
 		return map[string][]string{}
 	}
 	active := p.GetLocalActiveInbounds()
+	lock.Unlock()
+
 	if len(active) == 0 {
 		return map[string][]string{}
 	}
@@ -1140,12 +1151,16 @@ func (s *InboundService) GetActiveInboundsByGuid() map[string][]string {
 }
 
 func (s *InboundService) SetNodeOnlineTree(nodeID int, tree map[string][]string) {
+	lock.Lock()
+	defer lock.Unlock()
 	if p != nil {
 		p.SetNodeOnlineTree(nodeID, tree)
 	}
 }
 
 func (s *InboundService) ClearNodeOnlineClients(nodeID int) {
+	lock.Lock()
+	defer lock.Unlock()
 	if p != nil {
 		p.ClearNodeOnlineClients(nodeID)
 	}
@@ -1202,29 +1217,104 @@ func (s *InboundService) GetClientsLastOnline() (map[string]int64, error) {
 	return result, nil
 }
 
-// RefreshLocalOnlineClients folds the emails and inbound tags active on this
-// panel's own xray this poll into the local online/active sets, applying the
-// grace window and pruning stale entries. Pass nil to only prune. See
-// xray.Process for why the local sets are kept separate from the shared
-// last_online column.
-func (s *InboundService) RefreshLocalOnlineClients(activeEmails, activeInboundTags []string) {
-	if p == nil {
-		return
+// RefreshLegacyXrayOnlineClients folds raw Xray traffic-delta presence into
+// the legacy source. Exact GetUsersStats mode skips runtime-email resolution
+// entirely while still maintaining Xray inbound activity.
+func (s *InboundService) RefreshLegacyXrayOnlineClients(activeEmails, activeInboundTags []string) bool {
+	lock.Lock()
+	proc := p
+	exact := proc != nil && proc.XrayOnlineExact()
+	lock.Unlock()
+	if proc == nil {
+		return false
 	}
 
 	now := time.Now().UnixMilli()
 	resolvedEmails := activeEmails
-
-	if len(activeEmails) > 0 {
+	if exact {
+		resolvedEmails = nil
+	} else if len(activeEmails) > 0 {
 		logicalEmails, err := s.resolveRuntimeEmailsForLastOnline(database.GetDB(), activeEmails, now)
 		if err != nil {
-			logger.Warning("resolve runtime emails for local online clients failed:", err)
+			logger.Warning("resolve runtime emails for legacy Xray presence failed:", err)
 		} else {
 			resolvedEmails = logicalEmails
 		}
 	}
 
-	p.RefreshLocalOnline(resolvedEmails, activeInboundTags, now, onlineGracePeriodMs)
+	// Do not hold the restart lock across database resolution. Revalidate the
+	// process identity afterwards so a result from the old process cannot land
+	// on its replacement.
+	lock.Lock()
+	defer lock.Unlock()
+	if p != proc {
+		return false
+	}
+	if proc.XrayOnlineExact() {
+		resolvedEmails = nil
+	}
+	return proc.RefreshLegacyXrayOnline(
+		resolvedEmails,
+		activeInboundTags,
+		now,
+		onlineGracePeriodMs,
+	)
+}
+
+// RefreshCanonicalLegacyXrayOnlineClients records traffic-delta emails that
+// have already been mapped to canonical client identities by the traffic job.
+func (s *InboundService) RefreshCanonicalLegacyXrayOnlineClients(
+	activeEmails,
+	activeInboundTags []string,
+) bool {
+	lock.Lock()
+	defer lock.Unlock()
+
+	proc := p
+	if proc == nil {
+		return false
+	}
+	if proc.XrayOnlineExact() {
+		activeEmails = nil
+	}
+	return proc.RefreshLegacyXrayOnline(
+		activeEmails,
+		activeInboundTags,
+		time.Now().UnixMilli(),
+		onlineGracePeriodMs,
+	)
+}
+
+// RefreshAuxiliaryOnlineClients records logical emails and inbound tags from
+// non-Xray runtimes such as the MTProto mtg sidecar. The restart lock prevents
+// an auxiliary update from landing on a process after its migration snapshot.
+func (s *InboundService) RefreshAuxiliaryOnlineClients(activeEmails, activeInboundTags []string) bool {
+	lock.Lock()
+	defer lock.Unlock()
+
+	proc := p
+	if proc == nil {
+		return false
+	}
+	return proc.RefreshAuxiliaryOnline(
+		activeEmails,
+		activeInboundTags,
+		time.Now().UnixMilli(),
+		onlineGracePeriodMs,
+	)
+}
+
+// PruneLocalPresence expires stale legacy and auxiliary entries without adding
+// activity. Exact Xray users are unaffected.
+func (s *InboundService) PruneLocalPresence() bool {
+	lock.Lock()
+	defer lock.Unlock()
+
+	proc := p
+	if proc == nil {
+		return false
+	}
+	return proc.PruneLocalPresence(time.Now().UnixMilli(), onlineGracePeriodMs)
 }
 
 func (s *InboundService) FilterAndSortClientEmails(emails []string) ([]string, []string, error) {

@@ -172,10 +172,17 @@ func (j *NodeTrafficSyncJob) Run() {
 
 	j.maybePushGlobals(mgr, nodes)
 
-	// Prune stale local-online entries (no local active emails or inbound tags
-	// to add here — only the local xray poll feeds those) so a stopped local
-	// xray's clients and inbounds still age out between traffic polls.
-	j.inboundService.RefreshLocalOnlineClients(nil, nil)
+	// Prune stale grace-based local sources without touching exact Xray users.
+	// This also ages out auxiliary sidecars if their own poll temporarily fails.
+	beforePresence := j.inboundService.GetOnlineClients()
+	presenceChanged := j.inboundService.PruneLocalPresence()
+	broadcastPresenceTransition(
+		beforePresence,
+		presenceChanged,
+		j.inboundService.GetOnlineClients,
+		websocket.HasClients,
+		websocket.BroadcastPresence,
+	)
 
 	// Derive per-node-inbound speed every tick (keeps the baseline fresh even
 	// with no dashboard open); only broadcast it when someone is watching.

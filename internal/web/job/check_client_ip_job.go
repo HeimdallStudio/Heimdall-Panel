@@ -52,14 +52,10 @@ func (j *CheckClientIpJob) Run() {
 
 // collectFromOnlineAPI builds per-email IP observations (email -> ip ->
 // last-seen unix seconds) from the core's online-stats API. ok=false means the
-// API is unavailable — xray not running, an older core, or a transient gRPC
-// failure — and the caller skips the run (there is no access-log fallback).
+// shared snapshot is unavailable or stale, and the caller skips the run.
+// ClientPresenceJob owns the direct RPC poll.
 func (j *CheckClientIpJob) collectFromOnlineAPI() (map[string]map[string]int64, bool) {
-	onlineUsers, ok, err := j.xrayService.GetOnlineUsers()
-	if err != nil {
-		logger.Debug("[LimitIP] online-stats API unavailable this run:", err)
-		return nil, false
-	}
+	onlineUsers, ok := j.xrayService.GetCachedOnlineUsers()
 	if !ok {
 		return nil, false
 	}

@@ -241,7 +241,7 @@ export default function ClientsPage() {
     create, update, remove, bulkDelete, bulkAdjust, bulkEnable, bulkDisable, bulkAddToGroup, bulkRemoveFromGroup, attach, setExternalLinks, bulkAttach, detach, bulkDetach,
     resetTraffic, resetAllTraffics, delDepleted, delOrphans, exportClients, importClients, setEnable,
     clientSpeed,
-    applyTrafficEvent, applyClientStatsEvent,
+    applyTrafficEvent, applyPresenceEvent, applyClientStatsEvent,
     refresh,
     hydrate,
   } = useClients();
@@ -285,6 +285,7 @@ export default function ClientsPage() {
 
   useWebSocket({
     traffic: applyTrafficEvent,
+    presence: applyPresenceEvent,
     client_stats: applyClientStatsEvent,
   });
 

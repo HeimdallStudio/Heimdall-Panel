@@ -62,12 +62,13 @@ describe('generated OpenAPI WebSocket metadata', () => {
     expect(operation?.responses?.['403']).not.toHaveProperty('content');
   });
 
-  it('preserves the four documented events in a vendor extension', () => {
+  it('preserves the documented events in a vendor extension', () => {
     const events = document['x-websocket-events'];
     expect(events.map((event) => event.type)).toEqual([
       'status',
       'xray_state',
       'notification',
+      'presence',
       'invalidate',
     ]);
 
@@ -80,7 +81,7 @@ describe('generated OpenAPI WebSocket metadata', () => {
     }
   });
 
-  it('matches the concrete notification, Xray, and invalidate payload keys', () => {
+  it('matches the concrete notification, Xray, presence, and invalidate payload keys', () => {
     const byType = Object.fromEntries(
       document['x-websocket-events'].map((event) => [event.type, event.example]),
     );
@@ -93,6 +94,9 @@ describe('generated OpenAPI WebSocket metadata', () => {
     expect(byType.xray_state.payload).toEqual({
       state: 'running',
       errorMsg: '',
+    });
+    expect(byType.presence.payload).toEqual({
+      onlineClients: ['alice@example.test'],
     });
     expect(byType.invalidate.payload).toEqual({
       type: 'inbounds',

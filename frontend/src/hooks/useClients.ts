@@ -38,6 +38,7 @@ import {
 } from "@/schemas/client";
 import { DefaultsPayloadSchema } from "@/schemas/defaults";
 import { TRAFFIC_POLL_INTERVAL_S } from "@/lib/traffic/poll-interval";
+import { applyPresencePayload } from "@/lib/clients/presence";
 
 // One row sent to POST /clients/:email/externalLinks.
 export type ExternalLinkInput = { kind: 'link' | 'subscription'; value: string; remark: string };
@@ -774,6 +775,15 @@ export function useClients() {
     [queryClient],
   );
 
+  const applyPresenceEvent = useCallback(
+    (payload: unknown) => {
+      applyPresencePayload(payload, (onlineClients) => {
+        queryClient.setQueryData(keys.clients.onlines(), onlineClients);
+      });
+    },
+    [queryClient],
+  );
+
   const applyClientStatsEvent = useCallback(
     (payload: unknown) => {
       if (!payload || typeof payload !== "object") return;
@@ -867,6 +877,7 @@ export function useClients() {
     setEnable,
     clientSpeed,
     applyTrafficEvent,
+    applyPresenceEvent,
     applyClientStatsEvent,
   };
 }

@@ -1865,6 +1865,12 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'WS',
+        path: 'presence',
+        summary: 'Authoritative local online-client snapshot pushed only when the set changes. An empty onlineClients array immediately clears stale online badges.',
+        response: '{\n  "type": "presence",\n  "payload": { "onlineClients": ["alice@example.test"] },\n  "time": 1710000000000\n}',
+      },
+      {
+        method: 'WS',
         path: 'invalidate',
         summary: 'Instructs the UI to re-fetch a resource. Fired when another admin session modifies data (e.g. toggling inbound enable).',
         response: '{\n  "type": "invalidate",\n  "payload": { "type": "inbounds" },\n  "time": 1710000000000\n}',

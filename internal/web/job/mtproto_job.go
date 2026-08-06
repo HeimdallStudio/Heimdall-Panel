@@ -4,6 +4,7 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/logger"
 	"github.com/mhsanaei/3x-ui/v3/internal/mtproto"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/service"
+	"github.com/mhsanaei/3x-ui/v3/internal/web/websocket"
 	"github.com/mhsanaei/3x-ui/v3/internal/xray"
 )
 
@@ -77,5 +78,13 @@ func (j *MtprotoJob) Run() {
 		}
 	}
 
-	j.inboundService.RefreshLocalOnlineClients(onlineEmails, activeTags)
+	beforePresence := j.inboundService.GetOnlineClients()
+	changed := j.inboundService.RefreshAuxiliaryOnlineClients(onlineEmails, activeTags)
+	broadcastPresenceTransition(
+		beforePresence,
+		changed,
+		j.inboundService.GetOnlineClients,
+		websocket.HasClients,
+		websocket.BroadcastPresence,
+	)
 }
