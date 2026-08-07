@@ -40,8 +40,8 @@ do
     need "$tool"
 done
 
-test "$VERSION" = "1.5.1" ||
-    fail "release version must be 1.5.1, got: $VERSION"
+test "$VERSION" = "1.5.2" ||
+    fail "release version must be 1.5.2, got: $VERSION"
 
 test -n "$CUSTOM_XRAY" ||
     fail "HEIMDALL_CUSTOM_XRAY is required"
