@@ -999,3 +999,19 @@ func (r *Remote) FetchClientIpsByGuid(ctx context.Context) (map[string]map[strin
 	}
 	return out, nil
 }
+
+// StrictIPLimitParentConfig is the minimal bootstrap payload a parent sends to
+// a direct child so the child's local lease agent can synchronously relay Strict-B
+// decisions back up the hierarchy.
+type StrictIPLimitParentConfig struct {
+	URL              string `json:"url"`
+	Token            string `json:"token"`
+	ParentGuid       string `json:"parentGuid"`
+	TLSVerifyMode    string `json:"tlsVerifyMode,omitempty"`
+	PinnedCertSha256 string `json:"pinnedCertSha256,omitempty"`
+}
+
+func (r *Remote) ConfigureStrictIPLimitParent(ctx context.Context, cfg StrictIPLimitParentConfig) error {
+	_, err := r.do(ctx, http.MethodPost, "panel/api/server/strictIPLimitParent", cfg)
+	return err
+}

@@ -113,6 +113,9 @@ func (a *APIController) checkAPIAuth(c *gin.Context) {
 // initRouter sets up the API routes for inbounds, server, and other endpoints.
 func (a *APIController) initRouter(g *gin.RouterGroup) {
 	a.initCustomPanelRouter(g)
+	// Strict-B authority has its own node-bound HMAC authentication and must
+	// remain reachable before the regular browser/API-token middleware.
+	NewStrictIPLimitAuthorityController(g.Group("/panel/ip-limit/v1"))
 
 	// Main API group
 	api := g.Group("/panel/api")

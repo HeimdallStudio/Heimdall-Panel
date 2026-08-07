@@ -14,6 +14,7 @@ import (
 
 	"github.com/mhsanaei/3x-ui/v3/internal/config"
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
+	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
 	"github.com/mhsanaei/3x-ui/v3/internal/logger"
 )
 
@@ -26,14 +27,20 @@ const (
 )
 
 type clientIPLimitsFile struct {
-	Version        int            `json:"version"`
-	ReleaseSeconds int            `json:"releaseSeconds"`
-	Clients        map[string]int `json:"clients"`
+	Version        int               `json:"version"`
+	ReleaseSeconds int               `json:"releaseSeconds"`
+	SocketPath     string            `json:"socketPath,omitempty"`
+	Clients        map[string]int    `json:"clients"`
+	ClientGuids    map[string]string `json:"clientGuids,omitempty"`
 }
 
 type clientIPLimitRow struct {
-	Email   string `gorm:"column:email"`
-	LimitIP int    `gorm:"column:limit_ip"`
+	Email        string         `gorm:"column:email"`
+	LogicalEmail string         `gorm:"column:logical_email"`
+	ClientGuid   string         `gorm:"column:client_guid"`
+	LimitIP      int            `gorm:"column:limit_ip"`
+	InboundID    int            `gorm:"column:inbound_id"`
+	Protocol     model.Protocol `gorm:"column:protocol"`
 }
 
 // SyncClientIPLimitsJob keeps the Xray core-level IP-limit file synchronized
@@ -90,7 +97,7 @@ func loadClientIPLimitRows() ([]clientIPLimitRow, error) {
 
 	var rows []clientIPLimitRow
 	err := db.Table("clients AS clients").
-		Select("COALESCE(client_inbound_traffics.stat_email, clients.email) AS email, clients.limit_ip").
+		Select("client_inbound_traffics.stat_email AS email, clients.email AS logical_email, clients.client_guid, clients.limit_ip, inbounds.id AS inbound_id, inbounds.protocol AS protocol").
 		Joins("JOIN client_inbounds ON client_inbounds.client_id = clients.id").
 		Joins("JOIN inbounds ON inbounds.id = client_inbounds.inbound_id").
 		Joins("LEFT JOIN client_inbound_traffics ON client_inbound_traffics.client_id = clients.id AND client_inbound_traffics.inbound_id = client_inbounds.inbound_id").
@@ -101,28 +108,41 @@ func loadClientIPLimitRows() ([]clientIPLimitRow, error) {
 		return nil, err
 	}
 
+	for i := range rows {
+		rows[i].Email = runtimeEmailForClientIPLimitRow(rows[i])
+	}
+
 	return normalizeClientIPLimitRows(rows), nil
 }
 
+func runtimeEmailForClientIPLimitRow(row clientIPLimitRow) string {
+	if email := strings.TrimSpace(row.Email); email != "" {
+		return email
+	}
+	inbound := model.Inbound{Id: row.InboundID, Protocol: row.Protocol}
+	return model.RuntimeClientEmailForInbound(&inbound, strings.TrimSpace(row.LogicalEmail))
+}
+
 func normalizeClientIPLimitRows(rows []clientIPLimitRow) []clientIPLimitRow {
-	byEmail := make(map[string]int, len(rows))
+	byEmail := make(map[string]clientIPLimitRow, len(rows))
 	for _, row := range rows {
 		email := strings.TrimSpace(row.Email)
+		guid := strings.TrimSpace(row.ClientGuid)
 		if email == "" || row.LimitIP <= 0 {
 			continue
 		}
 
-		// Client email is globally unique in the database. Keeping the highest
-		// value also makes this helper deterministic if malformed duplicate rows
-		// are supplied by a test or a manual database edit.
-		if previous := byEmail[email]; row.LimitIP > previous {
-			byEmail[email] = row.LimitIP
+		row.Email = email
+		row.ClientGuid = guid
+		previous, exists := byEmail[email]
+		if !exists || row.LimitIP > previous.LimitIP {
+			byEmail[email] = row
 		}
 	}
 
 	normalized := make([]clientIPLimitRow, 0, len(byEmail))
-	for email, limit := range byEmail {
-		normalized = append(normalized, clientIPLimitRow{Email: email, LimitIP: limit})
+	for _, row := range byEmail {
+		normalized = append(normalized, row)
 	}
 
 	sort.Slice(normalized, func(i, k int) bool {
@@ -138,14 +158,20 @@ func buildClientIPLimitsJSON(rows []clientIPLimitRow, releaseSeconds int) ([]byt
 	}
 
 	clients := make(map[string]int, len(rows))
+	clientGuids := make(map[string]string, len(rows))
 	for _, row := range normalizeClientIPLimitRows(rows) {
 		clients[row.Email] = row.LimitIP
+		if row.ClientGuid != "" {
+			clientGuids[row.Email] = row.ClientGuid
+		}
 	}
 
 	payload := clientIPLimitsFile{
-		Version:        1,
+		Version:        2,
 		ReleaseSeconds: releaseSeconds,
+		SocketPath:     resolveStrictIPLimitSocketPath(),
 		Clients:        clients,
+		ClientGuids:    clientGuids,
 	}
 
 	data, err := json.MarshalIndent(payload, "", "  ")
@@ -175,6 +201,13 @@ func resolveClientIPLimitsPath() string {
 	}
 
 	return filepath.Join(filepath.Clean(binFolder), clientIPLimitsFileName)
+}
+
+func resolveStrictIPLimitSocketPath() string {
+	if configured := strings.TrimSpace(os.Getenv(strictIPLimitSocketEnv)); configured != "" {
+		return filepath.Clean(configured)
+	}
+	return defaultStrictIPLimitSocketPath
 }
 
 func clientIPLimitReleaseSeconds() int {

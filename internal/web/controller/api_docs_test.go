@@ -97,6 +97,8 @@ func TestAPIRoutesDocumented(t *testing.T) {
 			basePath = "/panel/api/admin-roles"
 		case "server.go":
 			basePath = "/panel/api/server"
+		case "strict_ip_limit_authority.go":
+			basePath = "/panel/ip-limit/v1"
 		case "node.go":
 			basePath = "/panel/api/nodes"
 		case "host.go":

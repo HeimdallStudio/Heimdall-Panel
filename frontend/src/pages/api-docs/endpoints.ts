@@ -571,6 +571,39 @@ export const sections: readonly Section[] = [
           { name: 'ips', in: 'body (json)', type: 'object[]', desc: 'Array of InboundClientIps to merge.' },
         ],
       },
+      {
+        method: 'POST',
+        path: '/panel/api/server/strictIPLimitParent',
+        summary: 'Internal node-provisioning endpoint used by a managing panel to configure this node\'s upstream Strict IP Limit authority. Requires the normal authenticated node API path; not intended for interactive clients.',
+        params: [
+          { name: 'url', in: 'body (json)', type: 'string', desc: 'Parent Strict-B lease authority URL.' },
+          { name: 'token', in: 'body (json)', type: 'string', desc: 'Dedicated Strict-B relay credential.' },
+          { name: 'parentGuid', in: 'body (json)', type: 'string', desc: 'Stable GUID of the direct parent panel.' },
+          { name: 'tlsVerifyMode', in: 'body (json)', type: 'string', desc: 'TLS verification mode inherited from node transport settings.' },
+          { name: 'pinnedCertSha256', in: 'body (json)', type: 'string', desc: 'Optional pinned parent certificate hash.', optional: true },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'strict-ip-limit-authority',
+    title: 'Strict IP Limit Authority',
+    description:
+      'Internal synchronous authority endpoint used only between HEIMDALL panels for Strict IP Limit lease acquire, renew, and release decisions. Authentication uses the dedicated Strict-B authority header provisioned to direct child nodes.',
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/panel/ip-limit/v1/lease',
+        summary: 'Resolve one authenticated Strict-B lease operation at the root authority, or relay it to the configured parent until the root is reached.',
+        params: [
+          { name: 'X-Heimdall-IPLimit-Auth', in: 'header', type: 'string', desc: 'Dedicated per-child Strict-B authority credential.' },
+          { name: 'operation', in: 'body (json)', type: 'string', desc: 'acquire or release.' },
+          { name: 'clientGuid', in: 'body (json)', type: 'string', desc: 'Stable logical ClientGuid.' },
+          { name: 'ip', in: 'body (json)', type: 'string', desc: 'Canonical client source IP.' },
+          { name: 'holderKey', in: 'body (json)', type: 'string', desc: 'Node-local holder identity used for lease lifecycle tracking.' },
+        ],
+      },
     ],
   },
 

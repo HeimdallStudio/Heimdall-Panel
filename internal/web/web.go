@@ -310,6 +310,13 @@ func (s *Server) startTask(restartXray bool) {
 	clientActivityCollectorJob.Run()
 	s.cron.AddJob("@every 10s", clientActivityCollectorJob)
 
+	// Start the synchronous Strict-B lease agent before Xray. Core talks only
+	// to this local Unix socket; the agent resolves locally on the root or relays
+	// synchronously through the parent chain. Retry socket setup periodically.
+	strictIPLimitAgentJob := job.NewStrictIPLimitAgentJob()
+	strictIPLimitAgentJob.Run()
+	s.cron.AddJob("@every 10s", strictIPLimitAgentJob)
+
 	// Generate Core-level client limits before Xray starts, then keep the
 	// files synchronized while the panel is running.
 	clientIPLimitsJob := job.NewSyncClientIPLimitsJob()

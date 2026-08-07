@@ -42,6 +42,9 @@ var defaultValueMap = map[string]string{
 	"secret":             random.Seq(32),
 	"panelGuid":          uuid.NewString(),
 	"apiToken":           "",
+	// Internal Strict-B relay configuration. This is provisioned automatically
+	// by the direct parent panel and intentionally kept out of the settings UI.
+	"strictIPLimitParent": "",
 	// Node mTLS material (opt-in). All default empty: the CA + master client
 	// cert are minted lazily on first use, and the node-side trust CA is pasted
 	// in by the operator. Kept out of entity.AllSetting so private keys never

@@ -79,6 +79,17 @@ func (a *ServerController) initRouter(g *gin.RouterGroup) {
 	g.POST("/scanRealityTarget", a.scanRealityTarget)
 	g.POST("/scanRealityTargets", a.scanRealityTargets)
 	g.POST("/clientIps", a.setClientIps)
+	g.POST("/strictIPLimitParent", a.setStrictIPLimitParent)
+}
+
+func (a *ServerController) setStrictIPLimitParent(c *gin.Context) {
+	var req service.StrictIPLimitParentConfig
+	if err := c.ShouldBindJSON(&req); err != nil {
+		jsonMsg(c, "invalid strict ip-limit parent configuration", err)
+		return
+	}
+	err := (&service.StrictIPLimitService{}).SetParentConfig(req)
+	jsonMsg(c, "strict ip-limit parent configured", err)
 }
 
 // startTask registers the @2s ticker that refreshes server status, samples

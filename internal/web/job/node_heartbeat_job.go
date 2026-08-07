@@ -10,6 +10,7 @@ import (
 	"github.com/mhsanaei/3x-ui/v3/internal/eventbus"
 	"github.com/mhsanaei/3x-ui/v3/internal/logger"
 	"github.com/mhsanaei/3x-ui/v3/internal/util/common"
+	"github.com/mhsanaei/3x-ui/v3/internal/util/wirecodec"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/service"
 	"github.com/mhsanaei/3x-ui/v3/internal/web/websocket"
 )
@@ -20,8 +21,9 @@ const (
 )
 
 type NodeHeartbeatJob struct {
-	nodeService service.NodeService
-	running     sync.Mutex
+	nodeService          service.NodeService
+	strictIPLimitService service.StrictIPLimitService
+	running              sync.Mutex
 }
 
 func NewNodeHeartbeatJob() *NodeHeartbeatJob {
@@ -92,6 +94,14 @@ func (j *NodeHeartbeatJob) probeOne(n *model.Node) {
 		dctx, dcancel := context.WithTimeout(context.Background(), nodeHeartbeatRequestTimeout)
 		j.nodeService.RefreshDescendants(dctx, n)
 		dcancel()
+
+		if patch.Guid != "" && wirecodec.HasCapability(patch.Capabilities, wirecodec.CapStrictIPLimitV1) {
+			pctx, pcancel := context.WithTimeout(context.Background(), nodeHeartbeatRequestTimeout)
+			if err := j.strictIPLimitService.ProvisionNodeParent(pctx, n, patch.Guid); err != nil {
+				logger.Warning("node heartbeat: strict ip-limit authority provisioning failed for ", n.Name, ": ", err)
+			}
+			pcancel()
+		}
 	} else {
 		j.nodeService.ClearDescendants(n.Id)
 	}

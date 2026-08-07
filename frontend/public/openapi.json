@@ -2798,6 +2798,10 @@
       "description": "System status, log retrieval, certificate generators, Xray binary management, and backup/restore. All under /panel/api/server."
     },
     {
+      "name": "Strict IP Limit Authority",
+      "description": "Internal synchronous authority endpoint used only between HEIMDALL panels for Strict IP Limit lease acquire, renew, and release decisions. Authentication uses the dedicated Strict-B authority header provisioned to direct child nodes."
+    },
+    {
       "name": "Clients",
       "description": "Manage clients as first-class entities that can be attached to one or more inbounds. A single client row drives the settings.clients entry in every inbound it belongs to. Delegated tokens may use the standard list/get/traffic/link/activity reads with clients:read and add/bulkCreate with clients:create; every other route remains denied to delegated tokens. The selected administrator’s live RBAC scope is always applied in addition to the token scope."
     },
@@ -5627,6 +5631,77 @@
         ],
         "summary": "Submit a list of recently active IP timestamps. The panel merges them with the existing database to maintain a unified global IP-limit view.",
         "operationId": "post_panel_api_server_clientIps",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/api/server/strictIPLimitParent": {
+      "post": {
+        "tags": [
+          "Server"
+        ],
+        "summary": "Internal node-provisioning endpoint used by a managing panel to configure this node's upstream Strict IP Limit authority. Requires the normal authenticated node API path; not intended for interactive clients.",
+        "operationId": "post_panel_api_server_strictIPLimitParent",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/ip-limit/v1/lease": {
+      "post": {
+        "tags": [
+          "Strict IP Limit Authority"
+        ],
+        "summary": "Resolve one authenticated Strict-B lease operation at the root authority, or relay it to the configured parent until the root is reached.",
+        "operationId": "post_panel_ip_limit_v1_lease",
+        "parameters": [
+          {
+            "name": "X-Heimdall-IPLimit-Auth",
+            "in": "header",
+            "required": true,
+            "description": "Dedicated per-child Strict-B authority credential.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful response",

@@ -24,9 +24,12 @@ const (
 	// CapRuntimeProfilesV1 proves that the node can persist one logical inbound
 	// and compile its automatic Multi Profile listeners locally.
 	CapRuntimeProfilesV1 = "runtime-profiles-v1"
+	// CapStrictIPLimitV1 proves that the node accepts automatic parent-authority
+	// provisioning and runs the local Strict-B Unix-socket lease agent.
+	CapStrictIPLimitV1 = "strict-ip-limit-v1"
 	// AdvertisedCapabilities is emitted on every node API response. Keep tokens
 	// comma-separated so old senders that search for "zstd" remain compatible.
-	AdvertisedCapabilities = CapZstd + "," + CapRuntimeProfilesV1
+	AdvertisedCapabilities = CapZstd + "," + CapRuntimeProfilesV1 + "," + CapStrictIPLimitV1
 
 	// maxDecodeBytes bounds in-memory decompression to defuse a zstd bomb from
 	// an (authenticated) node-API caller.
