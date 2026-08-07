@@ -56,6 +56,9 @@ func (s *ClientService) SyncInbound(tx *gorm.DB, inboundId int, clients []model.
 		}
 
 		incoming := clients[i].ToRecord()
+		if strings.TrimSpace(incoming.ClientGuid) == "" {
+			incoming.ClientGuid = model.LegacyClientGuidForEmail(email)
+		}
 		row, ok := existing[email]
 		if !ok {
 			if _, dup := pending[email]; !dup {
@@ -66,6 +69,9 @@ func (s *ClientService) SyncInbound(tx *gorm.DB, inboundId int, clients []model.
 		}
 
 		before := *row
+		if strings.TrimSpace(row.ClientGuid) == "" && incoming.ClientGuid != "" {
+			row.ClientGuid = incoming.ClientGuid
+		}
 		if incoming.UUID != "" {
 			row.UUID = incoming.UUID
 		}

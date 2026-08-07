@@ -127,6 +127,9 @@ func (s *ClientService) ImportClients(inboundSvc *InboundService, items []Client
 		}
 
 		client.Email = email
+		if strings.TrimSpace(client.ClientGuid) == "" {
+			client.ClientGuid = uuid.NewString()
+		}
 		if client.SubID == "" {
 			client.SubID = uuid.NewString()
 		}

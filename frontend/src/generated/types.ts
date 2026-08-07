@@ -4,6 +4,7 @@ export type OnlineAPISupport = number;
 export type ProcessState = string;
 export type Protocol = string;
 export type SubLinkProvider = unknown;
+export type presenceLookup = unknown;
 export type remoteClientDeleter = unknown;
 export type staticEgressResolver = string;
 export type transportBits = number;
@@ -242,6 +243,7 @@ export interface Client {
   adTag?: string;
   allowedIPs?: string[];
   auth?: string;
+  clientGuid?: string;
   comment: string;
   created_at?: number;
   downloadMbps: number;
@@ -279,6 +281,7 @@ export interface ClientRecord {
   adTag: string;
   allowedIPs: string;
   auth: string;
+  clientGuid: string;
   comment: string;
   createdAt: number;
   createdByAdminId: number;

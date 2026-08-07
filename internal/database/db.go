@@ -1124,7 +1124,7 @@ func runSeeders(isUsersEmpty bool) error {
 	}
 
 	if empty && isUsersEmpty {
-		seeders := []string{"UserPasswordHash", "ClientsTable", "InboundClientsArrayFix", "InboundClientTgIdFix", "InboundClientSubIdFix", "FreedomFinalRulesReverseFix", "ApiTokensHash", "LegacyProxySettingsCleanup", "WireguardPeersToClients", "MtprotoSecretsToClients", "NodeInboundsAdopted"}
+		seeders := []string{"UserPasswordHash", "ClientsTable", "ClientGuidBackfill", "InboundClientsArrayFix", "InboundClientTgIdFix", "InboundClientSubIdFix", "FreedomFinalRulesReverseFix", "ApiTokensHash", "LegacyProxySettingsCleanup", "WireguardPeersToClients", "MtprotoSecretsToClients", "NodeInboundsAdopted"}
 		for _, name := range seeders {
 			if err := db.Create(&model.HistoryOfSeeders{SeederName: name}).Error; err != nil {
 				return err
@@ -1266,6 +1266,14 @@ func runSeeders(isUsersEmpty bool) error {
 	// dropped from every mtproto inbound.
 	if err := stripMtprotoInboundSecrets(); err != nil {
 		return err
+	}
+
+	// Run after every legacy client-producing migration so WireGuard/MTProto
+	// clients created during this same startup receive the stable identity too.
+	if !slices.Contains(seedersHistory, "ClientGuidBackfill") {
+		if err := backfillClientGuids(); err != nil {
+			return err
+		}
 	}
 
 	// Idempotent, not seeder-gated: bad values can re-enter via a restored
@@ -1765,6 +1773,89 @@ func seedClientsFromInboundJSON() error {
 		}
 
 		return tx.Create(&model.HistoryOfSeeders{SeederName: "ClientsTable"}).Error
+	})
+}
+
+// backfillClientGuids gives every pre-v1.5.2 canonical client a stable logical
+// identity and writes the same value into every stored settings.clients entry.
+// The deterministic legacy derivation lets already-linked panels converge even
+// when they are upgraded independently before the root starts coordinating
+// leases. New clients use random GUIDs and keep them across email renames.
+func backfillClientGuids() error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		var rows []model.ClientRecord
+		if err := tx.Order("id ASC").Find(&rows).Error; err != nil {
+			return err
+		}
+
+		guidByEmail := make(map[string]string, len(rows))
+		for i := range rows {
+			email := strings.TrimSpace(rows[i].Email)
+			if email == "" {
+				continue
+			}
+			guid := strings.TrimSpace(rows[i].ClientGuid)
+			if guid == "" {
+				guid = model.LegacyClientGuidForEmail(email)
+				if guid == "" {
+					continue
+				}
+				if err := tx.Model(&model.ClientRecord{}).Where("id = ?", rows[i].Id).UpdateColumn("client_guid", guid).Error; err != nil {
+					return err
+				}
+				rows[i].ClientGuid = guid
+			}
+			guidByEmail[strings.ToLower(email)] = guid
+		}
+
+		var inbounds []model.Inbound
+		if err := tx.Select("id", "settings").Find(&inbounds).Error; err != nil {
+			return err
+		}
+		for i := range inbounds {
+			if strings.TrimSpace(inbounds[i].Settings) == "" {
+				continue
+			}
+			var settings map[string]any
+			if err := json.Unmarshal([]byte(inbounds[i].Settings), &settings); err != nil {
+				continue
+			}
+			clients, ok := settings["clients"].([]any)
+			if !ok {
+				continue
+			}
+			changed := false
+			for j := range clients {
+				cm, ok := clients[j].(map[string]any)
+				if !ok {
+					continue
+				}
+				email, _ := cm["email"].(string)
+				guid := guidByEmail[strings.ToLower(strings.TrimSpace(email))]
+				if guid == "" {
+					continue
+				}
+				if current, _ := cm["clientGuid"].(string); strings.TrimSpace(current) == guid {
+					continue
+				}
+				cm["clientGuid"] = guid
+				clients[j] = cm
+				changed = true
+			}
+			if !changed {
+				continue
+			}
+			settings["clients"] = clients
+			out, err := json.Marshal(settings)
+			if err != nil {
+				return err
+			}
+			if err := tx.Model(&model.Inbound{}).Where("id = ?", inbounds[i].Id).UpdateColumn("settings", string(out)).Error; err != nil {
+				return err
+			}
+		}
+
+		return tx.Create(&model.HistoryOfSeeders{SeederName: "ClientGuidBackfill"}).Error
 	})
 }
 

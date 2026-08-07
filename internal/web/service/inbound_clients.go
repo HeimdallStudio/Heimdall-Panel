@@ -205,6 +205,9 @@ func (s *InboundService) buildTargetClientFromSource(source model.Client, target
 	nowTs := time.Now().UnixMilli()
 	target := source
 	target.Email = email
+	// Copy creates a distinct logical client, not another attachment of the
+	// source identity. addInboundClient will mint a fresh ClientGuid.
+	target.ClientGuid = ""
 	target.CreatedAt = nowTs
 	target.UpdatedAt = nowTs
 

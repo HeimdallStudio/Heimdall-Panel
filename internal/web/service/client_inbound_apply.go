@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/mhsanaei/3x-ui/v3/internal/database"
 	"github.com/mhsanaei/3x-ui/v3/internal/database/model"
 	"github.com/mhsanaei/3x-ui/v3/internal/logger"
@@ -292,6 +294,47 @@ func (s *ClientService) addInboundClient(inboundSvc *InboundService, data *model
 	}
 
 	interfaceClients := settings["clients"].([]any)
+
+	// Assign one stable logical identity before the client is persisted into any
+	// inbound settings. Existing canonical records always win so attaching the
+	// same client to another inbound cannot rotate its ClientGuid. This path is
+	// shared by single create, bulk create, copy, and node AddClient RPCs.
+	existingGuids := make(map[string]string, len(clients))
+	if len(clients) > 0 {
+		emails := make([]string, 0, len(clients))
+		for i := range clients {
+			if email := strings.TrimSpace(clients[i].Email); email != "" {
+				emails = append(emails, email)
+			}
+		}
+		if len(emails) > 0 {
+			var rows []model.ClientRecord
+			if qErr := database.GetDB().Select("email", "client_guid").Where("email IN ?", emails).Find(&rows).Error; qErr != nil {
+				return false, qErr
+			}
+			for i := range rows {
+				existingGuids[strings.ToLower(strings.TrimSpace(rows[i].Email))] = strings.TrimSpace(rows[i].ClientGuid)
+			}
+		}
+	}
+	for i := range clients {
+		key := strings.ToLower(strings.TrimSpace(clients[i].Email))
+		guid := strings.TrimSpace(existingGuids[key])
+		if guid == "" {
+			guid = strings.TrimSpace(clients[i].ClientGuid)
+		}
+		if guid == "" {
+			guid = uuid.NewString()
+		}
+		clients[i].ClientGuid = guid
+		if i < len(interfaceClients) {
+			if cm, ok := interfaceClients[i].(map[string]any); ok {
+				cm["clientGuid"] = guid
+				interfaceClients[i] = cm
+			}
+		}
+	}
+
 	nowTs := time.Now().Unix() * 1000
 	for i := range interfaceClients {
 		if cm, ok := interfaceClients[i].(map[string]any); ok {
@@ -596,9 +639,9 @@ func (s *ClientService) UpdateInboundClient(inboundSvc *InboundService, data *mo
 		newClientId = clients[0].ID
 	}
 
-	// Locate the client to replace by email — the client's stable identity.
-	// Credentials (uuid/password/auth) can drift from the inbound JSON, so they
-	// are never used for matching.
+	// Locate the client to replace by its current email. ClientGuid is the stable
+	// logical identity, but email remains the compatibility locator for the
+	// existing edit API and stored settings arrays.
 	clientIndex := -1
 	for index, oldClient := range oldClients {
 		if strings.EqualFold(oldClient.Email, oldEmail) {
@@ -611,6 +654,28 @@ func (s *ClientService) UpdateInboundClient(inboundSvc *InboundService, data *mo
 	if newClientId == "" || clientIndex == -1 {
 		return false, common.NewError("empty client ID")
 	}
+
+	// Preserve the canonical logical identity even for legacy/direct update
+	// paths whose payload predates clientGuid. This also prevents a caller from
+	// rotating identity by supplying a different GUID in an edit payload.
+	stableGuid := strings.TrimSpace(oldClients[clientIndex].ClientGuid)
+	if stableGuid == "" {
+		var rec model.ClientRecord
+		if qErr := database.GetDB().Select("client_guid").Where("email = ?", oldEmail).First(&rec).Error; qErr == nil {
+			stableGuid = strings.TrimSpace(rec.ClientGuid)
+		}
+	}
+	if stableGuid == "" {
+		stableGuid = model.LegacyClientGuidForEmail(oldEmail)
+	}
+	clients[0].ClientGuid = stableGuid
+	if len(interfaceClients) > 0 {
+		if cm, ok := interfaceClients[0].(map[string]any); ok {
+			cm["clientGuid"] = stableGuid
+			interfaceClients[0] = cm
+		}
+	}
+
 	if strings.TrimSpace(clients[0].Email) == "" {
 		return false, common.NewError("client email is required")
 	}
@@ -719,7 +784,27 @@ func (s *ClientService) UpdateInboundClient(inboundSvc *InboundService, data *mo
 					newMap["keepAlive"] = clients[0].KeepAlive
 				}
 			}
-			if oldClientMap != nil && sameClientConfigExceptUpdatedAt(oldClientMap, newMap) {
+			// A legacy stored client may predate clientGuid while its canonical
+			// clients-table row already has the deterministic backfill. Treat a
+			// guid-only metadata insertion as a true no-op here: startup migration
+			// owns bulk backfill, and a no-op edit must not dirty a node or emit an
+			// UpdateUser RPC. If any real client field changes, keep clientGuid in
+			// the edited settings so the record converges naturally.
+			compareMap := newMap
+			legacyGuidOnlyCandidate := false
+			if oldClientMap != nil {
+				oldGuid, _ := oldClientMap["clientGuid"].(string)
+				if strings.TrimSpace(oldGuid) == "" {
+					compareMap = maps.Clone(newMap)
+					delete(compareMap, "clientGuid")
+					legacyGuidOnlyCandidate = true
+				}
+			}
+
+			if oldClientMap != nil && sameClientConfigExceptUpdatedAt(oldClientMap, compareMap) {
+				if legacyGuidOnlyCandidate {
+					delete(newMap, "clientGuid")
+				}
 				if v, ok2 := oldClientMap["updated_at"]; ok2 {
 					newMap["updated_at"] = v
 				} else {

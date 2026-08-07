@@ -1084,6 +1084,10 @@
             "description": "Authentication password",
             "type": "string"
           },
+          "clientGuid": {
+            "description": "Stable logical-client identity; independent of protocol credentials/email",
+            "type": "string"
+          },
           "comment": {
             "description": "Client comment",
             "type": "string"
@@ -1242,6 +1246,9 @@
           "auth": {
             "type": "string"
           },
+          "clientGuid": {
+            "type": "string"
+          },
           "comment": {
             "type": "string"
           },
@@ -1334,6 +1341,7 @@
           "adTag",
           "allowedIPs",
           "auth",
+          "clientGuid",
           "comment",
           "createdAt",
           "createdByAdminId",

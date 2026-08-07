@@ -1058,6 +1058,10 @@ export const SCHEMAS: Record<string, unknown> = {
         "description": "Authentication password",
         "type": "string"
       },
+      "clientGuid": {
+        "description": "Stable logical-client identity; independent of protocol credentials/email",
+        "type": "string"
+      },
       "comment": {
         "description": "Client comment",
         "type": "string"
@@ -1216,6 +1220,9 @@ export const SCHEMAS: Record<string, unknown> = {
       "auth": {
         "type": "string"
       },
+      "clientGuid": {
+        "type": "string"
+      },
       "comment": {
         "type": "string"
       },
@@ -1308,6 +1315,7 @@ export const SCHEMAS: Record<string, unknown> = {
       "adTag",
       "allowedIPs",
       "auth",
+      "clientGuid",
       "comment",
       "createdAt",
       "createdByAdminId",

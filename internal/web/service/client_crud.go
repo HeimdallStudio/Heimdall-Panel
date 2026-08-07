@@ -394,6 +394,12 @@ func (s *ClientService) Update(inboundSvc *InboundService, id int, updated model
 	if updated.Secret == "" {
 		updated.Secret = existing.Secret
 	}
+	// ClientGuid is immutable across edits and email renames. Ignore any caller
+	// attempt to rotate it; legacy rows receive their deterministic migration id.
+	updated.ClientGuid = strings.TrimSpace(existing.ClientGuid)
+	if updated.ClientGuid == "" {
+		updated.ClientGuid = model.LegacyClientGuidForEmail(existing.Email)
+	}
 
 	if updated.Email != existing.Email {
 		var collisionCount int64

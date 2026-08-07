@@ -849,6 +849,7 @@ type Client struct {
 	Secret       string         `json:"secret,omitempty" example:"ee1234567890abcdef1234567890abcd7777772e636c6f7564666c6172652e636f6d"`
 	AdTag        string         `json:"adTag,omitempty" example:"0123456789abcdef0123456789abcdef"`
 	Email        string         `json:"email"`                        // Client email identifier
+	ClientGuid   string         `json:"clientGuid,omitempty"`         // Stable logical-client identity; independent of protocol credentials/email
 	LimitIP      int            `json:"limitIp"`                      // Concurrent IP limit; 0 means unlimited
 	UploadMbps   int            `json:"uploadMbps"`                   // Aggregate upload limit in Mbps; 0 means unlimited
 	DownloadMbps int            `json:"downloadMbps"`                 // Aggregate download limit in Mbps; 0 means unlimited
@@ -867,6 +868,7 @@ type Client struct {
 type ClientRecord struct {
 	Id                     int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	Email                  string `json:"email" gorm:"uniqueIndex;not null"`
+	ClientGuid             string `json:"clientGuid" gorm:"column:client_guid;index:idx_clients_client_guid"`
 	SubID                  string `json:"subId" gorm:"index;column:sub_id"`
 	UUID                   string `json:"uuid" gorm:"column:uuid"`
 	Password               string `json:"password"`
@@ -1044,6 +1046,7 @@ func (Host) TableName() string { return "hosts" }
 func (c *Client) ToRecord() *ClientRecord {
 	rec := &ClientRecord{
 		Email:        c.Email,
+		ClientGuid:   c.ClientGuid,
 		SubID:        c.SubID,
 		UUID:         c.ID,
 		Password:     c.Password,
@@ -1100,6 +1103,7 @@ func (r *ClientRecord) ToClient() *Client {
 	c := &Client{
 		ID:           r.UUID,
 		Email:        r.Email,
+		ClientGuid:   r.ClientGuid,
 		SubID:        r.SubID,
 		Password:     r.Password,
 		Auth:         r.Auth,
@@ -1173,6 +1177,15 @@ func MergeClientRecord(existing *ClientRecord, incoming *ClientRecord) []ClientM
 
 	incomingNewer := incoming.UpdatedAt > existing.UpdatedAt ||
 		(incoming.UpdatedAt == existing.UpdatedAt && incoming.CreatedAt > existing.CreatedAt)
+
+	// ClientGuid is identity, not mutable profile data. Adopt it only when the
+	// canonical row predates the field; never let an inbound snapshot rotate an
+	// already-established logical identity.
+	if existing.ClientGuid == "" && incoming.ClientGuid != "" {
+		existing.ClientGuid = incoming.ClientGuid
+	} else if existing.ClientGuid != "" && incoming.ClientGuid != "" && existing.ClientGuid != incoming.ClientGuid {
+		keep("clientGuid", existing.ClientGuid, incoming.ClientGuid, existing.ClientGuid)
+	}
 
 	if existing.UUID != incoming.UUID && incoming.UUID != "" {
 		if incomingNewer || existing.UUID == "" {

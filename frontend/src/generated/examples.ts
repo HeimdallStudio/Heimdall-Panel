@@ -235,6 +235,7 @@ export const EXAMPLES: Record<string, unknown> = {
       ""
     ],
     "auth": "",
+    "clientGuid": "",
     "comment": "",
     "created_at": 0,
     "downloadMbps": 0,
@@ -270,6 +271,7 @@ export const EXAMPLES: Record<string, unknown> = {
     "adTag": "",
     "allowedIPs": "",
     "auth": "",
+    "clientGuid": "",
     "comment": "",
     "createdAt": 0,
     "createdByAdminId": 0,

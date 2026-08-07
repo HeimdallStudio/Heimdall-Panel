@@ -15,6 +15,9 @@ export type Protocol = z.infer<typeof ProtocolSchema>;
 export const SubLinkProviderSchema = z.unknown();
 export type SubLinkProvider = z.infer<typeof SubLinkProviderSchema>;
 
+export const presenceLookupSchema = z.unknown();
+export type presenceLookup = z.infer<typeof presenceLookupSchema>;
+
 export const remoteClientDeleterSchema = z.unknown();
 export type remoteClientDeleter = z.infer<typeof remoteClientDeleterSchema>;
 
@@ -262,6 +265,7 @@ export const ClientSchema = z.object({
   adTag: z.string().optional(),
   allowedIPs: z.array(z.string()).optional(),
   auth: z.string().optional(),
+  clientGuid: z.string().optional(),
   comment: z.string(),
   created_at: z.number().int().optional(),
   downloadMbps: z.number().int(),
@@ -301,6 +305,7 @@ export const ClientRecordSchema = z.object({
   adTag: z.string(),
   allowedIPs: z.string(),
   auth: z.string(),
+  clientGuid: z.string(),
   comment: z.string(),
   createdAt: z.number().int(),
   createdByAdminId: z.number().int(),
