@@ -24,6 +24,7 @@ import (
 var (
 	p                     *xray.Process
 	lock                  sync.Mutex
+	xrayLifecycleMu       sync.Mutex
 	onlineUsersPollMu     sync.Mutex
 	isNeedXrayRestart     atomic.Bool   // Indicates that restart was requested for Xray
 	xrayRestartGeneration atomic.Uint64 // Monotonic generation of restart/reconcile requests
@@ -1231,8 +1232,8 @@ func (s *XrayService) ReconcileXray() error {
 }
 
 func (s *XrayService) restartXray(isForce, honorPending, clearPending bool) error {
-	lock.Lock()
-	defer lock.Unlock()
+	xrayLifecycleMu.Lock()
+	defer xrayLifecycleMu.Unlock()
 
 	startGeneration := xrayRestartGeneration.Load()
 
@@ -1250,6 +1251,12 @@ func (s *XrayService) restartXray(isForce, honorPending, clearPending bool) erro
 			err,
 		)
 	}
+
+	// Config construction may consult node/presence state whose accessors use
+	// the package-level process lock. Keep that work outside lock to avoid
+	// self-deadlock, then protect all runtime process inspection/swaps below.
+	lock.Lock()
+	defer lock.Unlock()
 
 	var previousConfig *xray.Config
 	var auxiliaryPresence xray.AuxiliaryPresenceSnapshot
@@ -1495,6 +1502,9 @@ func addOutboundReconciling(api *xray.XrayAPI, outbound []byte) error {
 
 // StopXray stops the running Xray process.
 func (s *XrayService) StopXray() error {
+	xrayLifecycleMu.Lock()
+	defer xrayLifecycleMu.Unlock()
+
 	lock.Lock()
 	defer lock.Unlock()
 	isManuallyStopped.Store(true)
