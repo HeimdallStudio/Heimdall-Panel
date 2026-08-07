@@ -43,6 +43,14 @@ func TestCopyAllModelsIntoSQLite(t *testing.T) {
 	if err := src.Create(&xray.ClientTraffic{InboundId: 1, Email: "a@b.c", Enable: true, Up: 10, Down: 20}).Error; err != nil {
 		t.Fatalf("seed traffic: %v", err)
 	}
+	if err := src.Create(&model.ClientIPLeaseHolder{
+		ClientGuid: "11111111-1111-4111-8111-111111111111",
+		IP:         "203.0.113.10",
+		HolderKey:  "node-a",
+		ExpiresAt:  1234567890,
+	}).Error; err != nil {
+		t.Fatalf("seed client IP lease holder: %v", err)
+	}
 
 	dst, err := gorm.Open(sqlite.Open(dstPath), &gorm.Config{Logger: logger.Discard})
 	if err != nil {
@@ -60,6 +68,7 @@ func TestCopyAllModelsIntoSQLite(t *testing.T) {
 		{&model.User{}, 1},
 		{&model.Inbound{}, 1},
 		{&xray.ClientTraffic{}, 1},
+		{&model.ClientIPLeaseHolder{}, 1},
 	} {
 		var got int64
 		if err := dst.Model(tc.model).Count(&got).Error; err != nil {
@@ -77,6 +86,14 @@ func TestCopyAllModelsIntoSQLite(t *testing.T) {
 	}
 	if ct.Up != 10 || ct.Down != 20 || !ct.Enable {
 		t.Errorf("traffic mismatch: %+v", ct)
+	}
+
+	var holder model.ClientIPLeaseHolder
+	if err := dst.Where("client_guid = ?", "11111111-1111-4111-8111-111111111111").First(&holder).Error; err != nil {
+		t.Fatalf("read back client IP lease holder: %v", err)
+	}
+	if holder.IP != "203.0.113.10" || holder.HolderKey != "node-a" || holder.ExpiresAt != 1234567890 {
+		t.Errorf("client IP lease holder mismatch: %+v", holder)
 	}
 }
 
