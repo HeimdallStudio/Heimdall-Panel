@@ -27,34 +27,43 @@ func (s *ClientService) ResetTrafficByEmail(inboundSvc *InboundService, email st
 	}
 
 	needRestart := false
+
+	// Reset exhausted quota counters before re-enabling the logical client.
+	//
+	// Re-enabling first exposed a transient state where client_traffics.enable
+	// was true while up+down was still at or above total. The serialized traffic
+	// poll could observe that state and immediately disable the client again.
+	// This is especially visible for clients attached to multiple inbounds,
+	// because Update touches each inbound before the later traffic reset.
+	if len(inboundIds) == 0 {
+		if rErr := inboundSvc.ResetClientTrafficByEmail(email); rErr != nil {
+			return false, rErr
+		}
+	} else {
+		for _, ibId := range inboundIds {
+			nr, rErr := inboundSvc.ResetClientTraffic(ibId, email)
+			if rErr != nil {
+				return needRestart, rErr
+			}
+			if nr {
+				needRestart = true
+			}
+		}
+	}
+
 	if !rec.Enable {
 		updated := rec.ToClient()
 		updated.Enable = true
 		nr, uErr := s.Update(inboundSvc, rec.Id, *updated)
 		if uErr != nil {
-			logger.Warning("Failed to auto-enable client during traffic reset:", uErr)
+			logger.Warning("Failed to auto-enable client after traffic reset:", uErr)
+			return needRestart, uErr
 		}
 		if nr {
 			needRestart = true
 		}
 	}
 
-	if len(inboundIds) == 0 {
-		if rErr := inboundSvc.ResetClientTrafficByEmail(email); rErr != nil {
-			return false, rErr
-		}
-		return needRestart, nil
-	}
-
-	for _, ibId := range inboundIds {
-		nr, rErr := inboundSvc.ResetClientTraffic(ibId, email)
-		if rErr != nil {
-			return needRestart, rErr
-		}
-		if nr {
-			needRestart = true
-		}
-	}
 	return needRestart, nil
 }
 
