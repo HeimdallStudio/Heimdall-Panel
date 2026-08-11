@@ -23,20 +23,20 @@ The official script is the recommended path. During installation it generates a
 and installs the `x-ui` management command.
 
 ```bash title="latest stable"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 Install a **specific version** by appending its tag:
 
 ```bash title="pinned version"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) v3.4.0
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) v3.4.0
 ```
 
 Install the rolling **dev** build (the latest per-commit pre-release from `main`
 — not a stable release) by passing `dev-latest`:
 
 ```bash title="rolling dev build"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) dev-latest
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) dev-latest
 ```
 
 When it finishes, note the printed login details and run `x-ui` to open the
@@ -81,7 +81,7 @@ holds TLS certificates, so your data survives upgrades.
 <Tab value="Manual">
 
 For advanced users, download a release archive for your architecture from the
-[releases page](https://github.com/sh7CBAC/Heimdall/releases), extract it, and run
+[releases page](https://github.com/HeimdallStudio/Heimdall-Panel/releases), extract it, and run
 the binary as a systemd service. The install script automates exactly these
 steps, so it's preferred unless you have a specific reason to install by hand.
 
@@ -114,10 +114,10 @@ prompts, generating random credentials and writing them to
 `/etc/x-ui/install-result.env`:
 
 ```bash
-XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
-The repo's [`deploy/`](https://github.com/sh7CBAC/Heimdall/tree/main/deploy)
+The repo's [`deploy/`](https://github.com/HeimdallStudio/Heimdall-Panel/tree/main/deploy)
 directory has ready-made **cloud-init** user-data for unattended installs on any
 cloud (Hetzner, AWS, DigitalOcean, Vultr, GCP, Azure, Oracle).
 

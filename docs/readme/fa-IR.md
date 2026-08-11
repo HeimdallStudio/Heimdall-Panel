@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sh7CBAC/Heimdall/releases"><img src="https://img.shields.io/github/v/release/sh7CBAC/Heimdall" alt="Release"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/actions"><img src="https://img.shields.io/github/actions/workflow/status/sh7CBAC/Heimdall/release.yml.svg" alt="Build"></a>
-  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/sh7CBAC/Heimdall.svg" alt="GO Version"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/releases/latest"><img src="https://img.shields.io/github/downloads/sh7CBAC/Heimdall/total.svg" alt="Downloads"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases"><img src="https://img.shields.io/github/v/release/HeimdallStudio/Heimdall-Panel" alt="Release"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/actions"><img src="https://img.shields.io/github/actions/workflow/status/HeimdallStudio/Heimdall-Panel/release.yml.svg" alt="Build"></a>
+  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/HeimdallStudio/Heimdall-Panel.svg" alt="GO Version"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases/latest"><img src="https://img.shields.io/github/downloads/HeimdallStudio/Heimdall-Panel/total.svg" alt="Downloads"></a>
   <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img src="https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true" alt="License"></a>
 </p>
 
@@ -67,24 +67,24 @@
 ## شروع سریع
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 برای نصب یک نسخه‌ی مشخص، تگ آن را در انتها اضافه کنید (مثلاً `vX.Y.Z`):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) vX.Y.Z
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) vX.Y.Z
 ```
 
 برای نصب نسخه‌ی غلتانِ **dev** (آخرین پیش‌انتشار به‌ازای هر کامیت از شاخه‌ی `main`، نه یک انتشار پایدار)، مقدار `dev-latest` را پاس دهید:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) dev-latest
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) dev-latest
 ```
 
 در حین نصب، یک نام کاربری، رمز عبور و مسیر دسترسی تصادفی تولید می‌شود. پس از نصب، دستور `x-ui` را اجرا کنید تا منوی مدیریت باز شود؛ در آنجا می‌توانید سرویس را شروع/متوقف کنید، اطلاعات ورود خود را ببینید یا بازنشانی کنید، گواهی‌های SSL را مدیریت کنید و کارهای دیگری انجام دهید.
 
-برای مستندات کامل، لطفاً به [ویکی پروژه](https://github.com/sh7CBAC/Heimdall/wiki) مراجعه کنید.
+برای مستندات کامل، لطفاً به [ویکی پروژه](https://github.com/HeimdallStudio/Heimdall-Panel/wiki) مراجعه کنید.
 
 ### نصب بدون نظارت
 
@@ -199,4 +199,4 @@ English · فارسی · العربية · 中文（简体） · 中文（繁體
 
 ## ستاره‌ها در طول زمان
 
-[![Stargazers over time](https://starchart.cc/sh7CBAC/Heimdall.svg?variant=adaptive)](https://starchart.cc/sh7CBAC/Heimdall)
+[![Stargazers over time](https://starchart.cc/HeimdallStudio/Heimdall-Panel.svg?variant=adaptive)](https://starchart.cc/HeimdallStudio/Heimdall-Panel)

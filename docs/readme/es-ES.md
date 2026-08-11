@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sh7CBAC/Heimdall/releases"><img src="https://img.shields.io/github/v/release/sh7CBAC/Heimdall" alt="Release"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/actions"><img src="https://img.shields.io/github/actions/workflow/status/sh7CBAC/Heimdall/release.yml.svg" alt="Build"></a>
-  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/sh7CBAC/Heimdall.svg" alt="GO Version"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/releases/latest"><img src="https://img.shields.io/github/downloads/sh7CBAC/Heimdall/total.svg" alt="Downloads"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases"><img src="https://img.shields.io/github/v/release/HeimdallStudio/Heimdall-Panel" alt="Release"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/actions"><img src="https://img.shields.io/github/actions/workflow/status/HeimdallStudio/Heimdall-Panel/release.yml.svg" alt="Build"></a>
+  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/HeimdallStudio/Heimdall-Panel.svg" alt="GO Version"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases/latest"><img src="https://img.shields.io/github/downloads/HeimdallStudio/Heimdall-Panel/total.svg" alt="Downloads"></a>
   <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img src="https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true" alt="License"></a>
 </p>
 
@@ -67,24 +67,24 @@ Construido como un fork mejorado del proyecto X-UI original, 3X-UI añade un sop
 ## Inicio Rápido
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 Para instalar una versión específica, añade su etiqueta (p. ej. `vX.Y.Z`):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) vX.Y.Z
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) vX.Y.Z
 ```
 
 Para instalar la versión **dev** continua (la última prelanzamiento por commit desde `main`, no una versión estable), pasa `dev-latest`:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) dev-latest
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) dev-latest
 ```
 
 Durante la instalación se generan un nombre de usuario, una contraseña y una ruta de acceso aleatorios. Tras la instalación, ejecuta `x-ui` para abrir el menú de gestión, donde puedes iniciar/detener el servicio, ver o restablecer tus credenciales de acceso, gestionar certificados SSL y mucho más.
 
-Para la documentación completa, visita la [Wiki del proyecto](https://github.com/sh7CBAC/Heimdall/wiki).
+Para la documentación completa, visita la [Wiki del proyecto](https://github.com/HeimdallStudio/Heimdall-Panel/wiki).
 
 ### Instalación desatendida
 
@@ -199,4 +199,4 @@ Herramientas e integraciones construidas por la comunidad alrededor de 3x-ui.
 
 ## Estrellas a lo Largo del Tiempo
 
-[![Stargazers over time](https://starchart.cc/sh7CBAC/Heimdall.svg?variant=adaptive)](https://starchart.cc/sh7CBAC/Heimdall)
+[![Stargazers over time](https://starchart.cc/HeimdallStudio/Heimdall-Panel.svg?variant=adaptive)](https://starchart.cc/HeimdallStudio/Heimdall-Panel)

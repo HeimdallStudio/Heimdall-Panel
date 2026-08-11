@@ -10,7 +10,7 @@ export interface InstallOptions {
   webBasePath: string;
 }
 
-const REPO_RAW = 'https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh';
+const REPO_RAW = 'https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh';
 const IMAGE = 'ghcr.io/sh7cbac/heimdall:latest';
 
 function isLatest(version: string): boolean {

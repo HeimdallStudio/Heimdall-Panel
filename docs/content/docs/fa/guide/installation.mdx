@@ -24,20 +24,20 @@ Virtuozzo، Arch، Manjaro، openSUSE (Tumbleweed/Leap)، Alpine — و همچن
 دستور مدیریتی `x-ui` را نصب می‌کند.
 
 ```bash title="latest stable"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 برای نصب یک **نسخهٔ مشخص**، تگ آن را در انتها اضافه کنید:
 
 ```bash title="pinned version"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) v3.4.0
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) v3.4.0
 ```
 
 برای نصب نسخهٔ **dev** غلتان (آخرین پیش‌انتشار به‌ازای هر کامیت از شاخهٔ `main`
 — نه یک نسخهٔ پایدار) عبارت `dev-latest` را پاس دهید:
 
 ```bash title="rolling dev build"
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) dev-latest
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) dev-latest
 ```
 
 پس از پایان نصب، مشخصات ورود چاپ‌شده را یادداشت کنید و دستور `x-ui` را اجرا کنید تا
@@ -82,7 +82,7 @@ docker run -d \
 <Tab value="Manual">
 
 برای کاربران پیشرفته، یک آرشیو انتشار متناسب با معماری خود را از
-[صفحهٔ releases](https://github.com/sh7CBAC/Heimdall/releases) دانلود کنید، آن را
+[صفحهٔ releases](https://github.com/HeimdallStudio/Heimdall-Panel/releases) دانلود کنید، آن را
 استخراج کنید و باینری را به‌عنوان یک سرویس systemd اجرا کنید. اسکریپت نصب دقیقاً
 همین مراحل را خودکار می‌کند، بنابراین مگر اینکه دلیل خاصی برای نصب دستی داشته
 باشید، روش اسکریپتی ترجیح داده می‌شود.
@@ -116,10 +116,10 @@ docker run -d \
 `/etc/x-ui/install-result.env` بنویسد:
 
 ```bash
-XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+XUI_NONINTERACTIVE=1 bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
-دایرکتوری [`deploy/`](https://github.com/sh7CBAC/Heimdall/tree/main/deploy) در مخزن
+دایرکتوری [`deploy/`](https://github.com/HeimdallStudio/Heimdall-Panel/tree/main/deploy) در مخزن
 یک user-data آمادهٔ **cloud-init** برای نصب‌های خودکار روی هر ابری (Hetzner، AWS،
 DigitalOcean، Vultr، GCP، Azure، Oracle) دارد.
 

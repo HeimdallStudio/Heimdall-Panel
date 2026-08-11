@@ -960,13 +960,13 @@ update_x-ui() {
         tag_version="${XUI_UPDATE_TAG}"
         echo -e "${green}Using update tag: ${tag_version}${plain}"
     else
-        tag_version=$(${curl_bin} -Ls "https://api.github.com/repos/sh7CBAC/Heimdall/releases/latest" 2> /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        tag_version=$(${curl_bin} -Ls "https://api.github.com/repos/HeimdallStudio/Heimdall-Panel/releases/latest" 2> /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
         if [[ ! -n "$tag_version" ]]; then
             _fail "ERROR: Failed to fetch Heimdall version, it may be due to GitHub API restrictions, please try it later"
         fi
     fi
     echo -e "Got x-ui latest version: ${tag_version}, beginning the installation..."
-    ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/sh7CBAC/Heimdall/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
+    ${curl_bin} -fLRo ${xui_folder}-linux-$(arch).tar.gz https://github.com/HeimdallStudio/Heimdall-Panel/releases/download/${tag_version}/x-ui-linux-$(arch).tar.gz 2> /dev/null
     if [[ $? -ne 0 ]]; then
         _fail "ERROR: Failed to download x-ui, please be sure that your server can access GitHub"
     fi
@@ -1077,7 +1077,7 @@ update_x-ui() {
     echo -e "${green}Downloading and installing x-ui.sh script...${plain}"
     local xui_script_temp="/usr/bin/x-ui-temp.$$"
     rm -f "${xui_script_temp}"
-    ${curl_bin} -fLRo "${xui_script_temp}" https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/x-ui.sh > /dev/null 2>&1
+    ${curl_bin} -fLRo "${xui_script_temp}" https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/x-ui.sh > /dev/null 2>&1
     if [[ $? -ne 0 ]]; then
         rm -f "${xui_script_temp}"
         _fail "ERROR: Failed to download x-ui.sh script, please be sure that your server can access GitHub"
@@ -1108,7 +1108,7 @@ update_x-ui() {
         echo -e "${green}Downloading and installing startup unit x-ui.rc...${plain}"
         xui_rc_temp="/etc/init.d/x-ui.tmp.$$"
         rm -f "${xui_rc_temp}"
-        ${curl_bin} -fLRo "${xui_rc_temp}" https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/x-ui.rc > /dev/null 2>&1
+        ${curl_bin} -fLRo "${xui_rc_temp}" https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/x-ui.rc > /dev/null 2>&1
         if [[ $? -ne 0 ]]; then
             rm -f "${xui_rc_temp}"
             _fail "ERROR: Failed to download startup unit x-ui.rc, please be sure that your server can access GitHub"
@@ -1167,13 +1167,13 @@ update_x-ui() {
                 echo -e "${yellow}Service files not found in tar.gz, downloading from GitHub...${plain}"
                 case "${release}" in
                     ubuntu | debian | armbian)
-                        service_unit_url="https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/x-ui.service.debian"
+                        service_unit_url="https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/x-ui.service.debian"
                         ;;
                     arch | manjaro | parch)
-                        service_unit_url="https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/x-ui.service.arch"
+                        service_unit_url="https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/x-ui.service.arch"
                         ;;
                     *)
-                        service_unit_url="https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/x-ui.service.rhel"
+                        service_unit_url="https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/x-ui.service.rhel"
                         ;;
                 esac
 

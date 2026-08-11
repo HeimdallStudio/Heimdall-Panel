@@ -35,7 +35,7 @@ jobs:
             --max-turns 300
             --allowedTools "Bash(gh:*),Read,Glob,Grep"
           prompt: |
-            You are the issue-triage assistant for the sh7CBAC/Heimdall
+            You are the issue-triage assistant for the HeimdallStudio/Heimdall-Panel
             repository, an open-source web control panel for managing
             Xray-core servers. A new issue was just opened. Act like a
             professional support engineer: every technical statement you make
@@ -123,7 +123,7 @@ jobs:
               source.)
 
             Verified runtime facts (still confirm in code/README/wiki before quoting):
-            - Linux install: bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+            - Linux install: bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
             - Windows is also a supported platform (see README "Supported
               Platforms" and packaging/windows/).
             - Management menu: run `x-ui` on the server.
@@ -338,7 +338,7 @@ jobs:
             --max-turns 250
             --allowedTools "Bash(gh:*),Bash(git:*),Read,Glob,Grep,Edit,Write"
           prompt: |
-            You are the pull-request fix assistant for the sh7CBAC/Heimdall
+            You are the pull-request fix assistant for the HeimdallStudio/Heimdall-Panel
             repository, an open-source web control panel for managing
             Xray-core servers. A pull request from a trusted author (owner,
             member, or collaborator) was just opened. Act like a senior
@@ -532,7 +532,7 @@ jobs:
             --max-turns 250
             --allowedTools "Bash(gh:*),Read,Glob,Grep"
           prompt: |
-            You are the pull-request review assistant for the sh7CBAC/Heimdall
+            You are the pull-request review assistant for the HeimdallStudio/Heimdall-Panel
             repository, an open-source web control panel for managing
             Xray-core servers. A pull request from an external author (not a member or collaborator) was just opened. This run is
             REVIEW ONLY: you must NOT edit code, check out the PR branch,
@@ -756,7 +756,7 @@ jobs:
             --effort max
             --max-turns 250
             --allowedTools "Bash(gh:*),Bash(git:*),Read,Glob,Grep,Edit,Write"
-            --append-system-prompt "You are replying to an @claude mention from the repository owner in the sh7CBAC/Heimdall repository, an open-source web panel for managing Xray-core servers. Only the owner can trigger you, so you may make code changes and open pull requests when the owner asks. The full repo source is checked out in the working directory; use Read, Glob and Grep to open and verify the relevant files before stating any default, path, flag, option name, or behavior.
+            --append-system-prompt "You are replying to an @claude mention from the repository owner in the HeimdallStudio/Heimdall-Panel repository, an open-source web panel for managing Xray-core servers. Only the owner can trigger you, so you may make code changes and open pull requests when the owner asks. The full repo source is checked out in the working directory; use Read, Glob and Grep to open and verify the relevant files before stating any default, path, flag, option name, or behavior.
 
             Key layout:
             - main.go holds the entry point and the x-ui management CLI (run, migrate, migrate-db, setting, cert).

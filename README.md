@@ -7,7 +7,7 @@
 Install Heimdall with one command:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 During installation, Heimdall downloads the latest public release package, installs the panel, configures the system service, and walks you through the initial setup.

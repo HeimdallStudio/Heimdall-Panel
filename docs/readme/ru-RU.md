@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sh7CBAC/Heimdall/releases"><img src="https://img.shields.io/github/v/release/sh7CBAC/Heimdall" alt="Release"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/actions"><img src="https://img.shields.io/github/actions/workflow/status/sh7CBAC/Heimdall/release.yml.svg" alt="Build"></a>
-  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/sh7CBAC/Heimdall.svg" alt="GO Version"></a>
-  <a href="https://github.com/sh7CBAC/Heimdall/releases/latest"><img src="https://img.shields.io/github/downloads/sh7CBAC/Heimdall/total.svg" alt="Downloads"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases"><img src="https://img.shields.io/github/v/release/HeimdallStudio/Heimdall-Panel" alt="Release"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/actions"><img src="https://img.shields.io/github/actions/workflow/status/HeimdallStudio/Heimdall-Panel/release.yml.svg" alt="Build"></a>
+  <a href="#"><img src="https://img.shields.io/github/go-mod/go-version/HeimdallStudio/Heimdall-Panel.svg" alt="GO Version"></a>
+  <a href="https://github.com/HeimdallStudio/Heimdall-Panel/releases/latest"><img src="https://img.shields.io/github/downloads/HeimdallStudio/Heimdall-Panel/total.svg" alt="Downloads"></a>
   <a href="https://www.gnu.org/licenses/gpl-3.0.en.html"><img src="https://img.shields.io/badge/license-GPL%20V3-blue.svg?longCache=true" alt="License"></a>
 </p>
 
@@ -67,24 +67,24 @@
 ## Быстрый старт
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh)
 ```
 
 Чтобы установить конкретную версию, добавьте её тег (например, `vX.Y.Z`):
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) vX.Y.Z
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) vX.Y.Z
 ```
 
 Чтобы установить скользящую **dev**-сборку (новейший предварительный релиз по каждому коммиту из ветки `main`, а не стабильный релиз), передайте `dev-latest`:
 
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/sh7CBAC/Heimdall/main/install.sh) dev-latest
+bash <(curl -Ls https://raw.githubusercontent.com/HeimdallStudio/Heimdall-Panel/main/install.sh) dev-latest
 ```
 
 Во время установки генерируются случайные имя пользователя, пароль и путь доступа. После установки выполните `x-ui`, чтобы открыть меню управления, где можно запускать/останавливать сервис, просматривать или сбрасывать учётные данные для входа, управлять SSL-сертификатами и многое другое.
 
-Полную документацию смотрите в [вики проекта](https://github.com/sh7CBAC/Heimdall/wiki).
+Полную документацию смотрите в [вики проекта](https://github.com/HeimdallStudio/Heimdall-Panel/wiki).
 
 ### Автоматическая установка
 
@@ -199,4 +199,4 @@ English · فارسی · العربية · 中文（简体） · 中文（繁體
 
 ## Звезды с течением времени
 
-[![Stargazers over time](https://starchart.cc/sh7CBAC/Heimdall.svg?variant=adaptive)](https://starchart.cc/sh7CBAC/Heimdall)
+[![Stargazers over time](https://starchart.cc/HeimdallStudio/Heimdall-Panel.svg?variant=adaptive)](https://starchart.cc/HeimdallStudio/Heimdall-Panel)

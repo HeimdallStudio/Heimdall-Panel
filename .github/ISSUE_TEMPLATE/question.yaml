@@ -9,7 +9,7 @@ body:
       value: |
         Before opening a question, please:
 
-        - Read the [project Wiki](https://github.com/sh7CBAC/Heimdall/wiki) —
+        - Read the [project Wiki](https://github.com/HeimdallStudio/Heimdall-Panel/wiki) —
           most setup, install, and "how do I …" answers live there.
         - Search [existing issues](../issues?q=is%3Aissue) — the question
           may already have been asked.
@@ -82,7 +82,7 @@ body:
     attributes:
       label: Before submitting
       options:
-        - label: I read the [Wiki](https://github.com/sh7CBAC/Heimdall/wiki) and searched [existing issues](../issues?q=is%3Aissue).
+        - label: I read the [Wiki](https://github.com/HeimdallStudio/Heimdall-Panel/wiki) and searched [existing issues](../issues?q=is%3Aissue).
           required: true
         - label: This is a usage question, not a bug report.
           required: true
