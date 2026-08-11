@@ -30,7 +30,7 @@ export function ApiRequestBuilder() {
   return (
     <ToolFrame
       title="API request builder"
-      description="Build an authenticated cURL command or fetch() snippet for any 3x-ui panel API endpoint under /panel/api/*."
+      description="Build an authenticated cURL command or fetch() snippet for any Heimdall panel API endpoint under /panel/api/*."
       onReset={reset}
     >
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

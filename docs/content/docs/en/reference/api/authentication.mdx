@@ -1,10 +1,10 @@
 ---
 title: Authentication
 description: >-
-  Two authentication modes are supported. UI sessions use a cookie set by the
-  login endpoint. Programmatic clients (bots, scripts, remote panels)
-  authenticate with a Bearer token taken from Settings → Security → API Token.
-  Both work for every endpoint under /panel/api/*.
+  UI sessions use a cookie set by the login endpoint. Programmatic clients
+  authenticate with a Bearer token from Settings → Security → API Token. Most
+  protected panel APIs accept either mode; operations explicitly marked
+  browser-session-only reject Bearer tokens.
 full: true
 _openapi:
   preload:

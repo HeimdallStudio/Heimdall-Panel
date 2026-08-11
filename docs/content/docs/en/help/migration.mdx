@@ -1,6 +1,6 @@
 ---
 title: Migration
-description: Migrate to 3x-ui from x-ui, between servers, or between 3x-ui versions.
+description: Migrate to Heimdall from x-ui, between servers, or between Heimdall versions.
 icon: ArrowRightLeft
 ---
 
@@ -18,7 +18,7 @@ Copy the database (default `/etc/x-ui/x-ui.db`) and your certificates. See
 </Step>
 
 <Step>
-### Install 3x-ui on the new server
+### Install Heimdall on the new server
 
 Use the same install method and a compatible version. See
 [Installation](/docs/guide/installation).
@@ -33,7 +33,7 @@ panel. Update any IP/domain-specific settings.
 
 </Steps>
 
-## Between 3x-ui versions
+## Between Heimdall versions
 
 Within the same backend, upgrading is usually just re-running the installer or
 pulling a new image — the panel migrates its own database. Across **major**
@@ -42,8 +42,8 @@ first and take a backup.
 
 ## From x-ui
 
-Importing an older x-ui panel's database directly into 3x-ui is **not
-supported** — the schemas differ. Install 3x-ui fresh and recreate
+Importing an older x-ui panel's database directly into Heimdall is **not
+supported** — the schemas differ. Install Heimdall fresh and recreate
 inbounds/clients, exporting share links from the old panel as you go.
 
 <Callout type="warn">

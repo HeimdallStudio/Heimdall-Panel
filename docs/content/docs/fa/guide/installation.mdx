@@ -1,10 +1,10 @@
 ---
 title: نصب
-description: نصب 3x-ui با اسکریپت رسمی (نسخهٔ پایدار، نسخهٔ مشخص یا dev-latest)، نصب خودکار/cloud-init یا Docker — و انتخاب میان SQLite و PostgreSQL.
+description: نصب Heimdall با اسکریپت رسمی (نسخهٔ پایدار، نسخهٔ مشخص یا dev-latest)، نصب خودکار/cloud-init یا Docker — و انتخاب میان SQLite و PostgreSQL.
 icon: Download
 ---
 
-‏3x-ui روی طیف گسترده‌ای از توزیع‌های Linux اجرا می‌شود — Ubuntu، Debian، Armbian،
+‏Heimdall روی طیف گسترده‌ای از توزیع‌های Linux اجرا می‌شود — Ubuntu، Debian، Armbian،
 Fedora، CentOS، RHEL، AlmaLinux، Rocky Linux، Oracle Linux، Amazon Linux،
 Virtuozzo، Arch، Manjaro، openSUSE (Tumbleweed/Leap)، Alpine — و همچنین Windows،
 روی معماری‌های `amd64`، `386`، `arm64`، `armv7`، `armv6`، `armv5` و `s390x`.
@@ -62,17 +62,6 @@ docker compose up -d
 docker compose --profile postgres up -d
 ```
 
-ترجیح می‌دهید از ایمیج ازپیش‌ساخته استفاده کنید؟ این ایمیج روی GitHub Container Registry منتشر شده است:
-
-```bash title="docker run"
-docker run -d \
-  -v $PWD/db/:/etc/x-ui/ \
-  -v $PWD/cert/:/root/cert/ \
-  --network=host \
-  --restart=unless-stopped \
-  --name 3x-ui \
-  ghcr.io/sh7cbac/heimdall:latest
-```
 
 والیوم `db/` پایگاه‌دادهٔ SQLite (`/etc/x-ui/x-ui.db`) را نگه می‌دارد و `cert/`
 گواهی‌های TLS را، بنابراین داده‌های شما در ارتقاها حفظ می‌شوند.

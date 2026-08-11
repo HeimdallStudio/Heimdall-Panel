@@ -1,6 +1,6 @@
-# Contributing to 3x-ui-docs
+# Contributing to Heimdall Documentation
 
-Thanks for helping improve the 3x-ui documentation and product site!
+Thanks for helping improve the Heimdall documentation!
 
 ## Prerequisites
 

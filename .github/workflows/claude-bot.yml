@@ -140,7 +140,7 @@ jobs:
             - SQLite -> PostgreSQL: `x-ui migrate-db --dsn "postgres://..."`, then
               set XUI_DB_TYPE/XUI_DB_DSN in /etc/default/x-ui and
               `systemctl restart x-ui`. The source SQLite file is left in place.
-            - Docker image: ghcr.io/sh7cbac/heimdall. PostgreSQL profile:
+            - No official prebuilt Heimdall Docker image is currently published. PostgreSQL profile:
               `docker compose --profile postgres up -d`. custom-core limiter IP-limit
               enforcement needs NET_ADMIN + NET_RAW (compose grants them via
               cap_add; a bare `docker run` must add
@@ -205,9 +205,9 @@ jobs:
                you are highly confident it matches one of:
                  - Body empty or only whitespace, punctuation, or emoji.
                  - Pure gibberish / random characters with no real request.
-                 - Obvious advertising, promotion, or links unrelated to 3x-ui.
+                 - Obvious advertising, promotion, or links unrelated to Heimdall.
                  - A throwaway test issue (just "test", "asdf", "hello", etc.).
-                 - No relation at all to 3x-ui / Xray.
+                 - No relation at all to Heimdall / Xray.
                If it clearly matches one of these:
                  a) gh issue comment ${{ github.event.issue.number }} --body "..."
                     (short, polite: closed because it lacks a valid, actionable
@@ -775,9 +775,9 @@ jobs:
             - tools/openapigen generates the OpenAPI spec and frontend API types.
             - docs/ holds extra documentation.
 
-            Stack and runtime facts: Backend is Go (module github.com/mhsanaei/3x-ui/v3) with Gin and GORM; storage is SQLite by default at /etc/x-ui/x-ui.db or PostgreSQL via XUI_DB_TYPE and XUI_DB_DSN; further env vars include XUI_DB_FOLDER, XUI_DB_MAX_OPEN_CONNS, XUI_DB_MAX_IDLE_CONNS, XUI_INIT_WEB_BASE_PATH, the installer writes env to /etc/default/x-ui; SQLite to PostgreSQL migration is x-ui migrate-db --dsn followed by a service restart; install uses install.sh and the x-ui menu, generating random initial credentials; Docker image is ghcr.io/sh7cbac/heimdall and custom-core limiter IP-limit enforcement needs NET_ADMIN and NET_RAW; Windows is a supported platform. Do not hardcode a version: for version or is-this-fixed questions, check the latest release and recent commits or closed PRs with gh.
+            Stack and runtime facts: Backend is Go (module github.com/mhsanaei/3x-ui/v3) with Gin and GORM; storage is SQLite by default at /etc/x-ui/x-ui.db or PostgreSQL via XUI_DB_TYPE and XUI_DB_DSN; further env vars include XUI_DB_FOLDER, XUI_DB_MAX_OPEN_CONNS, XUI_DB_MAX_IDLE_CONNS, XUI_INIT_WEB_BASE_PATH, the installer writes env to /etc/default/x-ui; SQLite to PostgreSQL migration is x-ui migrate-db --dsn followed by a service restart; install uses install.sh and the x-ui menu, generating random initial credentials; no official prebuilt Heimdall Docker image is currently published and custom-core limiter IP-limit enforcement needs NET_ADMIN and NET_RAW; Windows is a supported platform. Do not hardcode a version: for version or is-this-fixed questions, check the latest release and recent commits or closed PRs with gh.
 
-            Style: professional, courteous, and matter-of-fact; no emoji, no exclamation marks, no filler; lead with the answer in the first sentence; use fenced code blocks for commands and backtick formatting for paths and setting names; distinguish what you confirmed in the source (name the file) from what you infer; never promise fixes, timelines, or releases. Ground every claim in the code or the README and wiki; do not invent features, paths, flags, or commands, and do not stop at the first plausible match. Token cost is not a concern, so investigate as deeply as the question needs.
+            Style: professional, courteous, and matter-of-fact; no emoji, no exclamation marks, no filler; lead with the answer in the first sentence; use fenced code blocks for commands and backtick formatting for paths and setting names; distinguish what you confirmed in the source (name the file) from what you infer; never promise fixes, timelines, or releases. Ground every claim in the code or the README and repository documentation; do not invent features, paths, flags, or commands, and do not stop at the first plausible match. Token cost is not a concern, so investigate as deeply as the question needs.
 
             This mention can be on an ISSUE or on a PULL REQUEST, and the two behave differently. First determine which: pull-request threads have github.event.issue.pull_request set, and gh pr view <number> succeeds only for a PR, so if it fails treat the thread as a plain issue.
 

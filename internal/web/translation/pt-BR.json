@@ -1206,7 +1206,7 @@
       "subAnnounce": "Anúncio",
       "subAnnounceDesc": "O texto do anúncio exibido no cliente VPN",
       "subThemeDir": "Diretório do tema de assinatura",
-      "subThemeDirDesc": "Caminho absoluto para uma pasta contendo um modelo personalizado (index.html/sub.html) para a página de assinatura (ex.: /etc/3x-ui/sub_templates/my-theme/). Deixe vazio para usar a página padrão.",
+      "subThemeDirDesc": "Caminho absoluto para uma pasta contendo um modelo personalizado (index.html/sub.html) para a página de assinatura (ex.: /etc/x-ui/sub_templates/my-theme/). Deixe vazio para usar a página padrão.",
       "subThemeDirDocs": "Guia de modelos ↗",
       "subEnableRouting": "Ativar roteamento",
       "subEnableRoutingDesc": "Configuração global para habilitar o roteamento no cliente VPN. (Apenas para Happ)",

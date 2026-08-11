@@ -1,10 +1,10 @@
 ---
 title: 安装
-description: 通过官方脚本（稳定版、指定版本或开发最新版）、无人值守 / cloud-init 或 Docker 安装 3x-ui，并选择 SQLite 或 PostgreSQL。
+description: 通过官方脚本（稳定版、指定版本或开发最新版）、无人值守 / cloud-init 或 Docker 安装 Heimdall，并选择 SQLite 或 PostgreSQL。
 icon: Download
 ---
 
-3x-ui 可运行在多种 Linux 发行版上——Ubuntu、Debian、Armbian、
+Heimdall 可运行在多种 Linux 发行版上——Ubuntu、Debian、Armbian、
 Fedora、CentOS、RHEL、AlmaLinux、Rocky Linux、Oracle Linux、Amazon Linux、
 Virtuozzo、Arch、Manjaro、openSUSE（Tumbleweed/Leap）、Alpine——以及 Windows，
 覆盖 `amd64`、`386`、`arm64`、`armv7`、`armv6`、`armv5` 和 `s390x` 架构。
@@ -60,17 +60,6 @@ docker compose up -d
 docker compose --profile postgres up -d
 ```
 
-更想使用预构建镜像？它已发布到 GitHub Container Registry：
-
-```bash title="docker run"
-docker run -d \
-  -v $PWD/db/:/etc/x-ui/ \
-  -v $PWD/cert/:/root/cert/ \
-  --network=host \
-  --restart=unless-stopped \
-  --name 3x-ui \
-  ghcr.io/sh7cbac/heimdall:latest
-```
 
 `db/` 卷保存 SQLite 数据库（`/etc/x-ui/x-ui.db`），`cert/`
 保存 TLS 证书，因此你的数据可在升级后保留。

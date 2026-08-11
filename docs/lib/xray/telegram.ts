@@ -1,4 +1,4 @@
-// Pure validation + templating helpers for 3x-ui's Telegram bot settings.
+// Pure validation + templating helpers for Heimdall's Telegram bot settings.
 // Grounded in internal/web/service/tgbot/tgbot.go (admin ids parsed with
 // strconv.ParseInt(_,10,64); token handed to telego.NewBot → api.telegram.org)
 // and the panel's tg* settings (tgRunTime uses robfig/cron). No React/DOM.

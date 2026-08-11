@@ -1,10 +1,10 @@
 ---
 title: 环境变量
-description: 3x-ui 的 XUI_* 环境变量完整参考——涵盖数据库、面板、日志、内存以及隧道健康监测器。
+description: Heimdall 的 XUI_* 环境变量完整参考——涵盖数据库、面板、日志、内存以及隧道健康监测器。
 icon: Variable
 ---
 
-3x-ui 从 `XUI_*` 环境变量中读取其运行时配置。使用脚本安装时，安装程序会将
+Heimdall 从 `XUI_*` 环境变量中读取其运行时配置。使用脚本安装时，安装程序会将
 这些变量写入服务环境文件（`/etc/default/x-ui`，或视发行版而定的
 `/etc/conf.d/x-ui` / `/etc/sysconfig/x-ui`）；使用 Docker 时，则在
 `docker-compose.yml` 或 `docker run -e` 中设置。默认值已足够合理——只需设置

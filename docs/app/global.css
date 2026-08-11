@@ -2,7 +2,7 @@
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
-/* 3x-ui brand: cyan / turquoise accent (matches the panel logo). */
+/* Heimdall documentation accent. */
 :root {
   --color-fd-primary: hsl(190, 95%, 39%);
   --color-fd-primary-foreground: hsl(0, 0%, 100%);

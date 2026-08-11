@@ -1,9 +1,9 @@
 {
-  "name": "3x-ui-frontend",
+  "name": "heimdall-frontend",
   "private": true,
   "version": "0.4.3",
   "type": "module",
-  "description": "3x-ui panel frontend (React 19 + Ant Design 6 + Vite 8).",
+  "description": "Heimdall panel frontend (React 19 + Ant Design 6 + Vite 8).",
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.0.0"

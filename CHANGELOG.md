@@ -10,6 +10,31 @@ Notable Heimdall changes are documented here.
 - Reorganized packaging and localized documentation.
 - Established Heimdall-owned documentation, CI, release, and container links.
 
+## 1.5.3
+
+### Changed
+
+- Moved Heimdall's operational repository, release, installer, updater, and documentation links to `HeimdallStudio/Heimdall-Panel`.
+
+### Fixed
+
+- Reset client quota counters before automatic re-enable to prevent the expiry job from disabling the client again.
+- Removed the duplicate success notification shown after resetting client traffic.
+- Preserved `EMAIL`, `INBOUND`, and `HOST` remark-template identity variables across every generated configuration.
+- Added complete client Activity JSON export instead of limiting downloads to the normal paginated API view.
+
+## 1.5.2
+
+### Added
+
+- Added connection-aware client presence tracking with stable logical `ClientGuid` identity.
+- Added Strict-B global logical-client IP-limit enforcement with same-IP deduplication across inbounds and nodes.
+- Added root-authority Unix-socket coordination for IP-limit and client activity state.
+
+### Fixed
+
+- Fixed an Xray startup self-deadlock by separating lifecycle locking from configuration generation and correcting lock ordering.
+
 ## 1.5.1
 
 ### Changed

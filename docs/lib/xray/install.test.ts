@@ -44,7 +44,7 @@ describe('buildDockerRun', () => {
     });
     expect(cmd).toContain('XUI_PORT=8443');
     expect(cmd).toContain('XUI_INIT_WEB_BASE_PATH=/panel');
-    expect(cmd).toContain('ghcr.io/sh7cbac/heimdall:latest');
+    expect(cmd).toContain('heimdall-local:latest');
     expect(cmd).toContain('-v $PWD/db/:/etc/x-ui/');
   });
 
@@ -58,7 +58,7 @@ describe('buildDockerRun', () => {
 describe('buildDockerCompose', () => {
   it('produces valid-looking compose with the image and volumes', () => {
     const yaml = buildDockerCompose({ ...base, panelPort: '2096' });
-    expect(yaml).toContain('image: ghcr.io/sh7cbac/heimdall:latest');
+    expect(yaml).toContain('image: heimdall-local:latest');
     expect(yaml).toContain('network_mode: host');
     expect(yaml).toContain("XUI_PORT: '2096'");
     expect(yaml).toContain('- ./db/:/etc/x-ui/');

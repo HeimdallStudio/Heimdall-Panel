@@ -1,4 +1,4 @@
-# 3x-ui — Architecture & Code Map
+# Heimdall — Architecture & Code Map
 
 > Navigation map for contributors and AI coding agents (referenced from `docs/development/CLAUDE.md`).
 > Goal: jump to the right file in one hop instead of grepping the whole tree.
@@ -13,7 +13,7 @@
 
 ## 1. Mental model (the 30-second version)
 
-3x-ui is a **web control panel for [Xray-core](https://github.com/XTLS/Xray-core)**. The Go
+Heimdall is a **web control panel for [Xray-core](https://github.com/XTLS/Xray-core)**. The Go
 backend is the source of truth: it stores inbounds/clients/settings in a DB, renders an
 Xray JSON config from that state, supervises the Xray child process, and exposes a REST +
 WebSocket API. A React SPA (built by Vite, embedded into the Go binary) is the UI. A second,
@@ -41,7 +41,7 @@ Two key ideas that explain most of the complexity:
 1. **The DB → Xray config pipeline.** Inbounds/clients live in the DB. On every change the
    backend regenerates the Xray config and applies it — preferring a *hot diff* (live gRPC
    API mutation) over a full process restart. See §5.1.
-2. **The Runtime abstraction (multi-node).** A panel can manage remote "nodes" (other 3x-ui
+2. **The Runtime abstraction (multi-node).** A panel can manage remote "nodes" (other Heimdall
    instances). Every state-changing inbound/client operation is dispatched through a
    `runtime.Runtime` interface that is either **`Local`** (this box's Xray gRPC API) or
    **`Remote`** (HTTPS call to a child node, with `verify`/`skip`/`pin`/`mtls` TLS modes).
@@ -118,7 +118,7 @@ node heartbeat every 5s, periodic traffic resets (hourly/daily/weekly/monthly). 
 ## 4. Directory map (what lives where)
 
 ```
-3x-ui/
+Heimdall-Panel/
 ├── main.go                     # Entry point: CLI (run / migrate / migrate-db / setting / cert),
 │                               #   bootstrap, signal handling, restart loop
 ├── go.mod / go.sum             # Go deps (module path ends in /v3)
@@ -308,7 +308,7 @@ Restart is debounced via an atomic "need restart" flag (`SetToNeedRestart` /
 
 ### 5.2 Runtime abstraction — Local vs Remote (multi-node) ⭐ most important
 
-A "node" (`model.Node`) is another 3x-ui instance this panel controls. Every state-changing
+A "node" (`model.Node`) is another Heimdall instance this panel controls. Every state-changing
 inbound/client operation goes through the `runtime.Runtime` interface so the *same service
 code* works whether the target is the local Xray or a remote node.
 

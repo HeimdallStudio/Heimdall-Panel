@@ -1,11 +1,11 @@
 ---
 title: Outbounds & Routing
-description: Shape egress in 3x-ui — WARP and NordVPN outbounds, outbound subscriptions (server pools), routing rules, and load balancers.
+description: Shape egress in Heimdall — WARP and NordVPN outbounds, outbound subscriptions (server pools), routing rules, and load balancers.
 icon: Route
 ---
 
 Inbounds accept clients; **outbounds** decide where their traffic goes next.
-3x-ui can route traffic through Cloudflare WARP, NordVPN, or arbitrary outbound
+Heimdall can route traffic through Cloudflare WARP, NordVPN, or arbitrary outbound
 pools imported from a subscription, and select between them with routing rules
 and balancers.
 
@@ -39,7 +39,7 @@ inbound's transport and security. Two outbounds are almost always present:
 
 A **proxy** outbound (VLESS, VMess, Trojan, Shadowsocks) forwards to another
 server — handy for chaining or sending select traffic abroad. Mind the wire
-shapes 3x-ui uses: **VLESS is the flat form** (`address`/`port`/`id`/`flow`/
+shapes Heimdall uses: **VLESS is the flat form** (`address`/`port`/`id`/`flow`/
 `encryption`), **VMess uses `settings.vnext[]`**, and **Trojan/Shadowsocks use
 `settings.servers[]`**. The `streamSettings` must mirror the destination's
 [transport and security](/docs/config/transports).
@@ -50,7 +50,7 @@ Assemble any outbound below and paste the JSON into **Xray Settings → Outbound
 
 ## Cloudflare WARP
 
-WARP lets your server egress through Cloudflare's network. 3x-ui can register a
+WARP lets your server egress through Cloudflare's network. Heimdall can register a
 WARP account for you and wire it into a WireGuard outbound tagged **`warp`**:
 
 <Steps>
@@ -64,7 +64,7 @@ Create a WireGuard outbound with the tag `warp` in your Xray config.
 <Step>
 ### Register WARP
 
-From the panel's WARP controls, register an account. 3x-ui fills the outbound's
+From the panel's WARP controls, register an account. Heimdall fills the outbound's
 keys, addresses, reserved bytes, and peer endpoint automatically.
 </Step>
 
@@ -82,7 +82,7 @@ with a routing rule.
 
 ## NordVPN
 
-3x-ui can fetch NordVPN (NordLynx/WireGuard) credentials from an access token (or
+Heimdall can fetch NordVPN (NordLynx/WireGuard) credentials from an access token (or
 accept a private key directly) and list countries/servers, so you can build a
 NordVPN outbound.
 

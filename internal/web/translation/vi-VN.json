@@ -1206,7 +1206,7 @@
       "subAnnounce": "Thông báo",
       "subAnnounceDesc": "Văn bản thông báo hiển thị trong ứng dụng VPN",
       "subThemeDir": "Thư mục giao diện Đăng ký",
-      "subThemeDirDesc": "Đường dẫn tuyệt đối đến thư mục chứa mẫu tùy chỉnh (index.html/sub.html) cho trang đăng ký (ví dụ: /etc/3x-ui/sub_templates/my-theme/). Để trống để dùng trang mặc định.",
+      "subThemeDirDesc": "Đường dẫn tuyệt đối đến thư mục chứa mẫu tùy chỉnh (index.html/sub.html) cho trang đăng ký (ví dụ: /etc/x-ui/sub_templates/my-theme/). Để trống để dùng trang mặc định.",
       "subThemeDirDocs": "Hướng dẫn mẫu ↗",
       "subEnableRouting": "Bật định tuyến",
       "subEnableRoutingDesc": "Cài đặt toàn cục để bật định tuyến trong ứng dụng khách VPN. (Chỉ dành cho Happ)",

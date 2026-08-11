@@ -110,10 +110,10 @@ _openapi:
       url: '#delete-an-outbound-subscription-by-id'
     - depth: 2
       title: >-
-        Delete an outbound subscription by id (POST alias of DELETE for
-        axios-friendly clients).
+        Delete an outbound subscription by id (POST alias of DELETE for clients
+        that cannot send DELETE).
       url: >-
-        #delete-an-outbound-subscription-by-id-post-alias-of-delete-for-axios-friendly-clients
+        #delete-an-outbound-subscription-by-id-post-alias-of-delete-for-clients-that-cannot-send-delete
     - depth: 2
       title: >-
         Force an immediate re-fetch of the subscription and return the parsed
@@ -221,9 +221,9 @@ _openapi:
         id: delete-an-outbound-subscription-by-id
       - content: >-
           Delete an outbound subscription by id (POST alias of DELETE for
-          axios-friendly clients).
+          clients that cannot send DELETE).
         id: >-
-          delete-an-outbound-subscription-by-id-post-alias-of-delete-for-axios-friendly-clients
+          delete-an-outbound-subscription-by-id-post-alias-of-delete-for-clients-that-cannot-send-delete
       - content: >-
           Force an immediate re-fetch of the subscription and return the parsed
           outbounds. Signals Xray to reload.

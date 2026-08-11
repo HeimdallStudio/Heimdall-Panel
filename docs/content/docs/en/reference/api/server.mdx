@@ -57,16 +57,25 @@ _openapi:
       title: List Xray binary versions available for install on this host.
       url: '#list-xray-binary-versions-available-for-install-on-this-host'
     - depth: 2
-      title: Check whether a newer 3x-ui release is available on GitHub.
-      url: '#check-whether-a-newer-3x-ui-release-is-available-on-github'
+      title: Check whether a newer HEIMDALL release is available on GitHub.
+      url: '#check-whether-a-newer-heimdall-release-is-available-on-github'
+    - depth: 2
+      title: >-
+        Report the outcome of the most recently launched panel self-update (see
+        POST updatePanel). Compare the returned runId against the one
+        updatePanel returned to tell this run apart from a stale result.
+      url: >-
+        #report-the-outcome-of-the-most-recently-launched-panel-self-update-see-post-updatepanel-compare-the-returned-runid-against-the-one-updatepanel-returned-to-tell-this-run-apart-from-a-stale-result
     - depth: 2
       title: Return the assembled Xray config that’s currently running on this host.
       url: '#return-the-assembled-xray-config-thats-currently-running-on-this-host'
     - depth: 2
       title: >-
-        Stream the SQLite database file as an attachment. Use as a manual
-        backup.
-      url: '#stream-the-sqlite-database-file-as-an-attachment-use-as-a-manual-backup'
+        Stream a full database backup as an attachment: the SQLite .db file on
+        SQLite panels, or a pg_dump custom-format archive (.dump) on PostgreSQL
+        panels. Use as a manual backup.
+      url: >-
+        #stream-a-full-database-backup-as-an-attachment-the-sqlite-db-file-on-sqlite-panels-or-a-pg_dump-custom-format-archive-dump-on-postgresql-panels-use-as-a-manual-backup
     - depth: 2
       title: >-
         Stream a cross-engine migration file as an attachment: a .dump (SQL
@@ -125,12 +134,6 @@ _openapi:
         #reload-xray-with-the-current-config-typically-required-after-structural-inbound-or-routing-changes
     - depth: 2
       title: >-
-        Download and install the specified Xray version. Pass "latest" for the
-        newest release.
-      url: >-
-        #download-and-install-the-specified-xray-version-pass-latest-for-the-newest-release
-    - depth: 2
-      title: >-
         Self-update the panel to the latest version. The server restarts on
         success.
       url: >-
@@ -158,10 +161,13 @@ _openapi:
       url: '#return-the-last-n-lines-of-the-xray-process-log'
     - depth: 2
       title: >-
-        Restore the panel DB from an uploaded SQLite file (multipart form, field
-        name "db"). The panel restarts after restore. Destructive.
+        Restore the panel DB from an uploaded backup (multipart form, field name
+        "db"). SQLite panels accept a SQLite database (.db) or a SQLite
+        migration dump (.dump); PostgreSQL panels accept a pg_dump archive
+        (.dump), a SQLite database (.db), or a SQLite migration dump. The panel
+        restarts after restore. Destructive.
       url: >-
-        #restore-the-panel-db-from-an-uploaded-sqlite-file-multipart-form-field-name-db-the-panel-restarts-after-restore-destructive
+        #restore-the-panel-db-from-an-uploaded-backup-multipart-form-field-name-db-sqlite-panels-accept-a-sqlite-database-db-or-a-sqlite-migration-dump-dump-postgresql-panels-accept-a-pg_dump-archive-dump-a-sqlite-database-db-or-a-sqlite-migration-dump-the-panel-restarts-after-restore-destructive
     - depth: 2
       title: >-
         Generate a new ECH (Encrypted Client Hello) keypair and config list for
@@ -183,6 +189,22 @@ _openapi:
         #run-xray-tls-ping-against-a-remote-server-and-return-its-live-leaf-certificate-sha-256-hashes-for-pinning-pinnedpeercertsha256
     - depth: 2
       title: >-
+        Run a live TLS 1.3 probe against a candidate REALITY target and return a
+        feasibility verdict (TLS 1.3 + h2 + X25519 + trusted certificate) plus
+        the certificate SAN DNS names.
+      url: >-
+        #run-a-live-tls-13-probe-against-a-candidate-reality-target-and-return-a-feasibility-verdict-tls-13--h2--x25519--trusted-certificate-plus-the-certificate-san-dns-names
+    - depth: 2
+      title: >-
+        Probe/discover REALITY targets and return each verdict ranked by
+        feasibility then latency. Each comma-separated token may be a domain
+        (validated with SNI), a bare IP, or a CIDR range (discovered without SNI
+        by reading the certificate domain). When empty, a built-in seed list is
+        probed.
+      url: >-
+        #probediscover-reality-targets-and-return-each-verdict-ranked-by-feasibility-then-latency-each-comma-separated-token-may-be-a-domain-validated-with-sni-a-bare-ip-or-a-cidr-range-discovered-without-sni-by-reading-the-certificate-domain-when-empty-a-built-in-seed-list-is-probed
+    - depth: 2
+      title: >-
         Fetch the fully aggregated inbound_client_ips database table. Used by
         nodes to sync recently active IPs across the cluster.
       url: >-
@@ -193,6 +215,14 @@ _openapi:
         with the existing database to maintain a unified global IP-limit view.
       url: >-
         #submit-a-list-of-recently-active-ip-timestamps-the-panel-merges-them-with-the-existing-database-to-maintain-a-unified-global-ip-limit-view
+    - depth: 2
+      title: >-
+        Internal node-provisioning endpoint used by a managing panel to
+        configure this node's upstream Strict IP Limit authority. Requires the
+        normal authenticated node API path; not intended for interactive
+        clients.
+      url: >-
+        #internal-node-provisioning-endpoint-used-by-a-managing-panel-to-configure-this-nodes-upstream-strict-ip-limit-authority-requires-the-normal-authenticated-node-api-path-not-intended-for-interactive-clients
   structuredData:
     headings:
       - content: >-
@@ -235,17 +265,24 @@ _openapi:
           time-series-of-observatory-probe-results-for-one-outbound-tag-same-t-v-shape-as-the-other-history-endpoints
       - content: List Xray binary versions available for install on this host.
         id: list-xray-binary-versions-available-for-install-on-this-host
-      - content: Check whether a newer 3x-ui release is available on GitHub.
-        id: check-whether-a-newer-3x-ui-release-is-available-on-github
+      - content: Check whether a newer HEIMDALL release is available on GitHub.
+        id: check-whether-a-newer-heimdall-release-is-available-on-github
+      - content: >-
+          Report the outcome of the most recently launched panel self-update
+          (see POST updatePanel). Compare the returned runId against the one
+          updatePanel returned to tell this run apart from a stale result.
+        id: >-
+          report-the-outcome-of-the-most-recently-launched-panel-self-update-see-post-updatepanel-compare-the-returned-runid-against-the-one-updatepanel-returned-to-tell-this-run-apart-from-a-stale-result
       - content: >-
           Return the assembled Xray config that’s currently running on this
           host.
         id: return-the-assembled-xray-config-thats-currently-running-on-this-host
       - content: >-
-          Stream the SQLite database file as an attachment. Use as a manual
-          backup.
+          Stream a full database backup as an attachment: the SQLite .db file on
+          SQLite panels, or a pg_dump custom-format archive (.dump) on
+          PostgreSQL panels. Use as a manual backup.
         id: >-
-          stream-the-sqlite-database-file-as-an-attachment-use-as-a-manual-backup
+          stream-a-full-database-backup-as-an-attachment-the-sqlite-db-file-on-sqlite-panels-or-a-pg_dump-custom-format-archive-dump-on-postgresql-panels-use-as-a-manual-backup
       - content: >-
           Stream a cross-engine migration file as an attachment: a .dump (SQL
           text) on SQLite, or a .db SQLite database built from the live data on
@@ -294,11 +331,6 @@ _openapi:
         id: >-
           reload-xray-with-the-current-config-typically-required-after-structural-inbound-or-routing-changes
       - content: >-
-          Download and install the specified Xray version. Pass "latest" for the
-          newest release.
-        id: >-
-          download-and-install-the-specified-xray-version-pass-latest-for-the-newest-release
-      - content: >-
           Self-update the panel to the latest version. The server restarts on
           success.
         id: >-
@@ -320,10 +352,13 @@ _openapi:
       - content: Return the last N lines of the Xray process log.
         id: return-the-last-n-lines-of-the-xray-process-log
       - content: >-
-          Restore the panel DB from an uploaded SQLite file (multipart form,
-          field name "db"). The panel restarts after restore. Destructive.
+          Restore the panel DB from an uploaded backup (multipart form, field
+          name "db"). SQLite panels accept a SQLite database (.db) or a SQLite
+          migration dump (.dump); PostgreSQL panels accept a pg_dump archive
+          (.dump), a SQLite database (.db), or a SQLite migration dump. The
+          panel restarts after restore. Destructive.
         id: >-
-          restore-the-panel-db-from-an-uploaded-sqlite-file-multipart-form-field-name-db-the-panel-restarts-after-restore-destructive
+          restore-the-panel-db-from-an-uploaded-backup-multipart-form-field-name-db-sqlite-panels-accept-a-sqlite-database-db-or-a-sqlite-migration-dump-dump-postgresql-panels-accept-a-pg_dump-archive-dump-a-sqlite-database-db-or-a-sqlite-migration-dump-the-panel-restarts-after-restore-destructive
       - content: >-
           Generate a new ECH (Encrypted Client Hello) keypair and config list
           for the given SNI.
@@ -341,6 +376,20 @@ _openapi:
         id: >-
           run-xray-tls-ping-against-a-remote-server-and-return-its-live-leaf-certificate-sha-256-hashes-for-pinning-pinnedpeercertsha256
       - content: >-
+          Run a live TLS 1.3 probe against a candidate REALITY target and return
+          a feasibility verdict (TLS 1.3 + h2 + X25519 + trusted certificate)
+          plus the certificate SAN DNS names.
+        id: >-
+          run-a-live-tls-13-probe-against-a-candidate-reality-target-and-return-a-feasibility-verdict-tls-13--h2--x25519--trusted-certificate-plus-the-certificate-san-dns-names
+      - content: >-
+          Probe/discover REALITY targets and return each verdict ranked by
+          feasibility then latency. Each comma-separated token may be a domain
+          (validated with SNI), a bare IP, or a CIDR range (discovered without
+          SNI by reading the certificate domain). When empty, a built-in seed
+          list is probed.
+        id: >-
+          probediscover-reality-targets-and-return-each-verdict-ranked-by-feasibility-then-latency-each-comma-separated-token-may-be-a-domain-validated-with-sni-a-bare-ip-or-a-cidr-range-discovered-without-sni-by-reading-the-certificate-domain-when-empty-a-built-in-seed-list-is-probed
+      - content: >-
           Fetch the fully aggregated inbound_client_ips database table. Used by
           nodes to sync recently active IPs across the cluster.
         id: >-
@@ -350,6 +399,13 @@ _openapi:
           with the existing database to maintain a unified global IP-limit view.
         id: >-
           submit-a-list-of-recently-active-ip-timestamps-the-panel-merges-them-with-the-existing-database-to-maintain-a-unified-global-ip-limit-view
+      - content: >-
+          Internal node-provisioning endpoint used by a managing panel to
+          configure this node's upstream Strict IP Limit authority. Requires the
+          normal authenticated node API path; not intended for interactive
+          clients.
+        id: >-
+          internal-node-provisioning-endpoint-used-by-a-managing-panel-to-configure-this-nodes-upstream-strict-ip-limit-authority-requires-the-normal-authenticated-node-api-path-not-intended-for-interactive-clients
     contents: []
 ---
 
@@ -362,7 +418,7 @@ export default function Layout(props) {
   return (
     <>
       {props.children}
-      <Comp document="./public/openapi.json" webhooks={[]} operations={[{"path":"/panel/api/server/status","method":"get"},{"path":"/panel/api/server/cpuHistory/{bucket}","method":"get"},{"path":"/panel/api/server/history/{metric}/{bucket}","method":"get"},{"path":"/panel/api/server/xrayMetricsState","method":"get"},{"path":"/panel/api/server/xrayMetricsHistory/{metric}/{bucket}","method":"get"},{"path":"/panel/api/server/xrayObservatory","method":"get"},{"path":"/panel/api/server/xrayObservatoryHistory/{tag}/{bucket}","method":"get"},{"path":"/panel/api/server/getXrayVersion","method":"get"},{"path":"/panel/api/server/getPanelUpdateInfo","method":"get"},{"path":"/panel/api/server/getConfigJson","method":"get"},{"path":"/panel/api/server/getDb","method":"get"},{"path":"/panel/api/server/getMigration","method":"get"},{"path":"/panel/api/server/getNewUUID","method":"get"},{"path":"/panel/api/server/getWebCertFiles","method":"get"},{"path":"/panel/api/server/descendants","method":"get"},{"path":"/panel/api/server/getNewX25519Cert","method":"get"},{"path":"/panel/api/server/getNewmldsa65","method":"get"},{"path":"/panel/api/server/getNewmlkem768","method":"get"},{"path":"/panel/api/server/getNewVlessEnc","method":"get"},{"path":"/panel/api/server/stopXrayService","method":"post"},{"path":"/panel/api/server/restartXrayService","method":"post"},{"path":"/panel/api/server/installXray/{version}","method":"post"},{"path":"/panel/api/server/updatePanel","method":"post"},{"path":"/panel/api/server/setUpdateChannel","method":"post"},{"path":"/panel/api/server/updateGeofile","method":"post"},{"path":"/panel/api/server/updateGeofile/{fileName}","method":"post"},{"path":"/panel/api/server/logs/{count}","method":"post"},{"path":"/panel/api/server/xraylogs/{count}","method":"post"},{"path":"/panel/api/server/importDB","method":"post"},{"path":"/panel/api/server/getNewEchCert","method":"post"},{"path":"/panel/api/server/getCertHash","method":"post"},{"path":"/panel/api/server/getRemoteCertHash","method":"post"},{"path":"/panel/api/server/clientIps","method":"get"},{"path":"/panel/api/server/clientIps","method":"post"}]} showTitle />
+      <Comp document="./public/openapi.json" webhooks={[]} operations={[{"path":"/panel/api/server/status","method":"get"},{"path":"/panel/api/server/cpuHistory/{bucket}","method":"get"},{"path":"/panel/api/server/history/{metric}/{bucket}","method":"get"},{"path":"/panel/api/server/xrayMetricsState","method":"get"},{"path":"/panel/api/server/xrayMetricsHistory/{metric}/{bucket}","method":"get"},{"path":"/panel/api/server/xrayObservatory","method":"get"},{"path":"/panel/api/server/xrayObservatoryHistory/{tag}/{bucket}","method":"get"},{"path":"/panel/api/server/getXrayVersion","method":"get"},{"path":"/panel/api/server/getPanelUpdateInfo","method":"get"},{"path":"/panel/api/server/getUpdateStatus","method":"get"},{"path":"/panel/api/server/getConfigJson","method":"get"},{"path":"/panel/api/server/getDb","method":"get"},{"path":"/panel/api/server/getMigration","method":"get"},{"path":"/panel/api/server/getNewUUID","method":"get"},{"path":"/panel/api/server/getWebCertFiles","method":"get"},{"path":"/panel/api/server/descendants","method":"get"},{"path":"/panel/api/server/getNewX25519Cert","method":"get"},{"path":"/panel/api/server/getNewmldsa65","method":"get"},{"path":"/panel/api/server/getNewmlkem768","method":"get"},{"path":"/panel/api/server/getNewVlessEnc","method":"get"},{"path":"/panel/api/server/stopXrayService","method":"post"},{"path":"/panel/api/server/restartXrayService","method":"post"},{"path":"/panel/api/server/updatePanel","method":"post"},{"path":"/panel/api/server/setUpdateChannel","method":"post"},{"path":"/panel/api/server/updateGeofile","method":"post"},{"path":"/panel/api/server/updateGeofile/{fileName}","method":"post"},{"path":"/panel/api/server/logs/{count}","method":"post"},{"path":"/panel/api/server/xraylogs/{count}","method":"post"},{"path":"/panel/api/server/importDB","method":"post"},{"path":"/panel/api/server/getNewEchCert","method":"post"},{"path":"/panel/api/server/getCertHash","method":"post"},{"path":"/panel/api/server/getRemoteCertHash","method":"post"},{"path":"/panel/api/server/scanRealityTarget","method":"post"},{"path":"/panel/api/server/scanRealityTargets","method":"post"},{"path":"/panel/api/server/clientIps","method":"get"},{"path":"/panel/api/server/clientIps","method":"post"},{"path":"/panel/api/server/strictIPLimitParent","method":"post"}]} showTitle />
     </>
   );
 }

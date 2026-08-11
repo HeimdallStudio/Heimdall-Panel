@@ -1,22 +1,18 @@
-# 3x-ui Custom Subscription Templates
+# Heimdall Custom Subscription Templates
 
-3x-ui can render your users' subscription pages from your own custom HTML templates.
+Heimdall can render subscription pages from custom HTML templates.
 
-## How to use a Custom Template
+Heimdall releases include the customized Ourenus-based subscription template
+used by the panel. You can also configure a separate custom template directory.
 
-1. Go to the 3x-ui panel settings.
-2. Under **Settings → Subscription → Information**, locate the **Sub Theme Directory** field.
-3. Provide the absolute path to the folder containing your template (e.g. `/etc/3x-ui/sub_templates/my-theme/`).
-4. Save the settings.
+To use your own template:
 
-> **Note:** 3x-ui does not ship any templates by default. Create your own template folder anywhere
-> on the server, put an `index.html` (or `sub.html`) inside it, and point **Sub Theme Directory** at
-> that absolute path. Leave the field empty to use the default built-in page.
+1. Open the Heimdall panel settings.
+2. Configure the custom subscription template option.
+3. Provide the absolute path to the directory containing the template, for example
+   `/etc/x-ui/sub_templates/my-theme/`.
 
-## Creating a Template
-
-A custom template must be an HTML file named `index.html` or `sub.html` located within the directory you specified in the settings.
-The panel uses standard Go `html/template` to render the subscription page.
+Custom templates are independent from the bundled Ourenus-based template.
 
 ### Available Variables
 

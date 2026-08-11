@@ -1,6 +1,6 @@
 ---
 title: 入站与协议
-description: 在 3x-ui 中创建入站——协议、传输方式、流量重置与到期，以及在同一端口上服务多种协议的回落（fallback）。
+description: 在 Heimdall 中创建入站——协议、传输方式、流量重置与到期，以及在同一端口上服务多种协议的回落（fallback）。
 icon: ArrowDownToLine
 ---
 
@@ -66,7 +66,7 @@ icon: ArrowDownToLine
 ## 回落——在同一端口上服务多种协议
 
 回落（fallback）让单个 TLS 端口（例如 `443`）可以服务不止一种协议——例如同时服务
-VLESS **和** Trojan——方法是将无法匹配的握手路由到子入站。在 3x-ui 中，回落是在
+VLESS **和** Trojan——方法是将无法匹配的握手路由到子入站。在 Heimdall 中，回落是在
 面板里管理的（主入站的 **Fallbacks** 列表），而不是手写进 JSON。
 
 只有当主入站满足以下条件时，回落才可用：

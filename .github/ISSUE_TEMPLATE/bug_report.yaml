@@ -73,7 +73,7 @@ body:
     attributes:
       label: Heimdall version
       description: Shown at the top of the panel sidebar.
-      placeholder: 3.1.0
+      placeholder: 1.5.3
     validations:
       required: true
 
@@ -82,7 +82,7 @@ body:
     attributes:
       label: Xray-core version
       description: Visible on the `Xray Settings` page.
-      placeholder: 25.x.x
+      placeholder: 26.x.x
     validations:
       required: false
 

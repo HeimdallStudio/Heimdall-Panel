@@ -9,8 +9,8 @@ body:
       value: |
         Before opening a question, please:
 
-        - Read the [project Wiki](https://github.com/HeimdallStudio/Heimdall-Panel/wiki) —
-          most setup, install, and "how do I …" answers live there.
+        - Read the [project README](https://github.com/HeimdallStudio/Heimdall-Panel#readme) —
+          it contains the current project overview and installation information.
         - Search [existing issues](../issues?q=is%3Aissue) — the question
           may already have been asked.
 
@@ -33,9 +33,9 @@ body:
     id: tried
     attributes:
       label: What have you already tried?
-      description: Pages of the Wiki you read, settings you toggled, commands you ran.
+      description: README sections or documentation you read, settings you toggled, commands you ran.
       placeholder: |
-        - Read the `Reverse Proxy` page of the Wiki
+        - Read the README and searched existing issues
         - Tried setting `xrayBasePath` to `/proxy` — got 404
     validations:
       required: false
@@ -45,7 +45,7 @@ body:
     attributes:
       label: Heimdall version
       description: Shown at the top of the panel sidebar.
-      placeholder: 3.1.0
+      placeholder: 1.5.3
     validations:
       required: true
 
@@ -82,7 +82,7 @@ body:
     attributes:
       label: Before submitting
       options:
-        - label: I read the [Wiki](https://github.com/HeimdallStudio/Heimdall-Panel/wiki) and searched [existing issues](../issues?q=is%3Aissue).
+        - label: I read the [README](https://github.com/HeimdallStudio/Heimdall-Panel#readme) and searched [existing issues](../issues?q=is%3Aissue).
           required: true
         - label: This is a usage question, not a bug report.
           required: true

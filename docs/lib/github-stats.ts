@@ -55,7 +55,7 @@ export async function fetchGitHubStats(init?: RequestInit): Promise<GitHubStats 
  */
 export async function getGitHubStats(): Promise<GitHubStats> {
   const headers: Record<string, string> = {
-    'User-Agent': '3x-ui-docs',
+    'User-Agent': 'Heimdall-docs',
     Accept: 'application/vnd.github+json',
   };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;

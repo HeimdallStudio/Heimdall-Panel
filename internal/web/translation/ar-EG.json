@@ -1206,7 +1206,7 @@
       "subAnnounce": "إعلان",
       "subAnnounceDesc": "نص الإعلان المعروض في عميل VPN",
       "subThemeDir": "مجلد قالب الاشتراك",
-      "subThemeDirDesc": "المسار المطلق لمجلد يحتوي على قالب مخصص (index.html/sub.html) لصفحة الاشتراك (مثل /etc/3x-ui/sub_templates/my-theme/). اتركه فارغًا لاستخدام الصفحة الافتراضية.",
+      "subThemeDirDesc": "المسار المطلق لمجلد يحتوي على قالب مخصص (index.html/sub.html) لصفحة الاشتراك (مثل /etc/x-ui/sub_templates/my-theme/). اتركه فارغًا لاستخدام الصفحة الافتراضية.",
       "subThemeDirDocs": "دليل القالب ↗",
       "subEnableRouting": "تفعيل التوجيه",
       "subEnableRoutingDesc": "إعداد عام لتمكين التوجيه (Routing) في عميل VPN. (فقط لـ Happ)",

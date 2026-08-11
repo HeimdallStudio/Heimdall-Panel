@@ -1,6 +1,6 @@
 ---
 title: Inbounds & Protocols
-description: Create inbounds in 3x-ui — protocols, transports, traffic reset and expiry, and fallbacks that serve multiple protocols on one port.
+description: Create inbounds in Heimdall — protocols, transports, traffic reset and expiry, and fallbacks that serve multiple protocols on one port.
 icon: ArrowDownToLine
 ---
 
@@ -71,7 +71,7 @@ The inbound editor accepts these protocols:
 
 Fallbacks let a single TLS port (e.g. `443`) serve more than one protocol — for
 example VLESS **and** Trojan — by routing unmatched handshakes to a child
-inbound. In 3x-ui, fallbacks are managed in the panel (a master inbound's
+inbound. In Heimdall, fallbacks are managed in the panel (a master inbound's
 **Fallbacks** list) rather than hand-written into JSON.
 
 Fallbacks are available only when the master inbound is:

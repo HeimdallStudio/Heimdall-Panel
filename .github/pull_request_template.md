@@ -58,6 +58,6 @@ Write "None" if there are no breaking changes.
 - [ ] I added or updated tests for the new behavior (when applicable).
 - [ ] `go build ./...` and the test suite pass locally.
 - [ ] For frontend changes: `npm run lint`, `npm run typecheck`, and `npm run build` pass.
-- [ ] I updated the Wiki / README / API docs if user-facing behavior changed.
+- [ ] I updated the README / relevant docs / API docs if user-facing behavior changed.
 - [ ] My commits follow the project's existing message style.
 - [ ] I have no unrelated changes mixed into this PR.

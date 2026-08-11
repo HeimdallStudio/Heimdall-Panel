@@ -1,10 +1,10 @@
 ---
 title: Installation
-description: Install 3x-ui via the official script (stable, pinned, or dev-latest), unattended/cloud-init, or Docker — and choose SQLite or PostgreSQL.
+description: Install Heimdall via the official script (stable, pinned, or dev-latest), unattended/cloud-init, or Docker — and choose SQLite or PostgreSQL.
 icon: Download
 ---
 
-3x-ui runs on a wide range of Linux distributions — Ubuntu, Debian, Armbian,
+Heimdall runs on a wide range of Linux distributions — Ubuntu, Debian, Armbian,
 Fedora, CentOS, RHEL, AlmaLinux, Rocky Linux, Oracle Linux, Amazon Linux,
 Virtuozzo, Arch, Manjaro, openSUSE (Tumbleweed/Leap), Alpine — and Windows,
 across `amd64`, `386`, `arm64`, `armv7`, `armv6`, `armv5`, and `s390x`.
@@ -61,17 +61,6 @@ lines in `docker-compose.yml` and start with the profile:
 docker compose --profile postgres up -d
 ```
 
-Prefer the prebuilt image? It's published to the GitHub Container Registry:
-
-```bash title="docker run"
-docker run -d \
-  -v $PWD/db/:/etc/x-ui/ \
-  -v $PWD/cert/:/root/cert/ \
-  --network=host \
-  --restart=unless-stopped \
-  --name 3x-ui \
-  ghcr.io/sh7cbac/heimdall:latest
-```
 
 The `db/` volume holds the SQLite database (`/etc/x-ui/x-ui.db`) and `cert/`
 holds TLS certificates, so your data survives upgrades.

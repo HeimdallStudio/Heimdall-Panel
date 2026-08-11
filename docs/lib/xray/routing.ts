@@ -1,5 +1,5 @@
 // Pure builders for an Xray routing block — balancers, routing rules, and the
-// observatory/burstObservatory health monitors — matching 3x-ui's schemas
+// observatory/burstObservatory health monitors — matching Heimdall's schemas
 // (frontend schemas/routing.ts, observatory.ts, xray.ts):
 //   - balancers live under `routing.balancers[]`; rules under `routing.rules[]`.
 //   - `observatory` / `burstObservatory` are TOP-LEVEL (siblings of routing).

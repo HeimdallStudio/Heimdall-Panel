@@ -1,10 +1,10 @@
 ---
-title: Meet 3x-ui
+title: Meet Heimdall
 description: A web panel for Xray-core — manage inbounds, protocols, clients, and subscriptions from your browser instead of editing JSON by hand.
 icon: Info
 ---
 
-**3x-ui** is a web control panel that sits on top of
+**Heimdall** is a web control panel that sits on top of
 [Xray-core](https://github.com/XTLS/Xray-core), the proxy engine that actually
 moves your traffic. Instead of writing and reloading Xray's JSON configuration
 by hand, you manage everything — inbounds, protocols, clients, certificates,
@@ -15,7 +15,7 @@ subscriptions — from a browser dashboard.
 <Mermaid
   chart={`
 flowchart LR
-  Admin["Admin browser"] -->|HTTPS panel| Panel["3x-ui panel"]
+  Admin["Admin browser"] -->|HTTPS panel| Panel["Heimdall panel"]
   Panel -->|writes config, reloads| Xray["Xray-core"]
   Panel --- DB[("SQLite or PostgreSQL")]
   Clients["Client apps"] -->|VLESS / VMess / Trojan / ...| Xray
@@ -57,14 +57,14 @@ on port **2053** by default. Both are configurable — see
 
 ## Who it's for
 
-3x-ui is aimed at anyone running their own Xray server: from a single personal
+Heimdall is aimed at anyone running their own Xray server: from a single personal
 VPS to operators managing many nodes and clients. If you want the power of
 Xray-core without living in JSON config files, this is for you.
 
 <Callout type="info">
-  3x-ui is an enhanced fork of the original X-UI project, adding broader protocol
-  support, improved stability, per-client traffic accounting, multi-node
-  management, and many quality-of-life features.
+  Heimdall is based on the 3X-UI project by MHSanaei, which itself derives from X-UI.
+  Heimdall adds broader protocol support, improved stability, per-client traffic
+  accounting, multi-node management, and many quality-of-life features.
 </Callout>
 
 Ready to install? Continue to [Installation](/docs/guide/installation).

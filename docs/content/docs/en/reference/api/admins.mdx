@@ -1,0 +1,162 @@
+---
+title: Admins
+description: >-
+  Manage Heimdall panel administrator accounts from an active browser session.
+  Bearer API tokens are rejected. Access follows administrator RBAC permissions,
+  and password hashes are never returned.
+full: true
+_openapi:
+  preload:
+    - ./public/openapi.json
+  toc:
+    - depth: 2
+      title: >-
+        Return the currently logged-in panel administrator with role metadata
+        and effective role permissions for frontend RBAC.
+      url: >-
+        #return-the-currently-logged-in-panel-administrator-with-role-metadata-and-effective-role-permissions-for-frontend-rbac
+    - depth: 2
+      title: >-
+        List panel administrators with role metadata, status, data limit, used
+        bytes, and owned-client count. Passwords are never returned.
+      url: >-
+        #list-panel-administrators-with-role-metadata-status-data-limit-used-bytes-and-owned-client-count-passwords-are-never-returned
+    - depth: 2
+      title: Return administrator counters used by the Admins page summary cards.
+      url: '#return-administrator-counters-used-by-the-admins-page-summary-cards'
+    - depth: 2
+      title: >-
+        Fetch one administrator by numeric ID. Password hashes are never
+        returned.
+      url: >-
+        #fetch-one-administrator-by-numeric-id-password-hashes-are-never-returned
+    - depth: 2
+      title: >-
+        Create a new administrator. The owner role cannot be assigned through
+        this endpoint.
+      url: >-
+        #create-a-new-administrator-the-owner-role-cannot-be-assigned-through-this-endpoint
+    - depth: 2
+      title: >-
+        Update a non-owner administrator. Leave password empty to keep the
+        existing password. Owner admins cannot be modified here.
+      url: >-
+        #update-a-non-owner-administrator-leave-password-empty-to-keep-the-existing-password-owner-admins-cannot-be-modified-here
+    - depth: 2
+      title: >-
+        Delete a non-owner administrator. Deletion is blocked when the admin
+        owns clients.
+      url: >-
+        #delete-a-non-owner-administrator-deletion-is-blocked-when-the-admin-owns-clients
+    - depth: 2
+      title: Enable a non-owner administrator account.
+      url: '#enable-a-non-owner-administrator-account'
+    - depth: 2
+      title: >-
+        Disable a non-owner administrator account and bump its login epoch so
+        existing sessions are invalidated.
+      url: >-
+        #disable-a-non-owner-administrator-account-and-bump-its-login-epoch-so-existing-sessions-are-invalidated
+    - depth: 2
+      title: Reset admin-level used bytes to zero.
+      url: '#reset-admin-level-used-bytes-to-zero'
+    - depth: 2
+      title: >-
+        Disable every currently-active client owned by the selected
+        administrator. Updates runtime users, stored inbound settings, client
+        records, traffic enable flags, and remote node state when applicable.
+      url: >-
+        #disable-every-currently-active-client-owned-by-the-selected-administrator-updates-runtime-users-stored-inbound-settings-client-records-traffic-enable-flags-and-remote-node-state-when-applicable
+    - depth: 2
+      title: >-
+        Activate every currently-disabled client owned by the selected
+        administrator. Returns the number of clients changed and requests an
+        Xray restart when needed.
+      url: >-
+        #activate-every-currently-disabled-client-owned-by-the-selected-administrator-returns-the-number-of-clients-changed-and-requests-an-xray-restart-when-needed
+    - depth: 2
+      title: >-
+        Remove every client owned by the selected administrator using the
+        optimized bulk-delete pipeline. This is destructive and removes runtime
+        users, inbound links, client records, traffic rows, IP rows, and
+        activity rows.
+      url: >-
+        #remove-every-client-owned-by-the-selected-administrator-using-the-optimized-bulk-delete-pipeline-this-is-destructive-and-removes-runtime-users-inbound-links-client-records-traffic-rows-ip-rows-and-activity-rows
+  structuredData:
+    headings:
+      - content: >-
+          Return the currently logged-in panel administrator with role metadata
+          and effective role permissions for frontend RBAC.
+        id: >-
+          return-the-currently-logged-in-panel-administrator-with-role-metadata-and-effective-role-permissions-for-frontend-rbac
+      - content: >-
+          List panel administrators with role metadata, status, data limit, used
+          bytes, and owned-client count. Passwords are never returned.
+        id: >-
+          list-panel-administrators-with-role-metadata-status-data-limit-used-bytes-and-owned-client-count-passwords-are-never-returned
+      - content: Return administrator counters used by the Admins page summary cards.
+        id: return-administrator-counters-used-by-the-admins-page-summary-cards
+      - content: >-
+          Fetch one administrator by numeric ID. Password hashes are never
+          returned.
+        id: >-
+          fetch-one-administrator-by-numeric-id-password-hashes-are-never-returned
+      - content: >-
+          Create a new administrator. The owner role cannot be assigned through
+          this endpoint.
+        id: >-
+          create-a-new-administrator-the-owner-role-cannot-be-assigned-through-this-endpoint
+      - content: >-
+          Update a non-owner administrator. Leave password empty to keep the
+          existing password. Owner admins cannot be modified here.
+        id: >-
+          update-a-non-owner-administrator-leave-password-empty-to-keep-the-existing-password-owner-admins-cannot-be-modified-here
+      - content: >-
+          Delete a non-owner administrator. Deletion is blocked when the admin
+          owns clients.
+        id: >-
+          delete-a-non-owner-administrator-deletion-is-blocked-when-the-admin-owns-clients
+      - content: Enable a non-owner administrator account.
+        id: enable-a-non-owner-administrator-account
+      - content: >-
+          Disable a non-owner administrator account and bump its login epoch so
+          existing sessions are invalidated.
+        id: >-
+          disable-a-non-owner-administrator-account-and-bump-its-login-epoch-so-existing-sessions-are-invalidated
+      - content: Reset admin-level used bytes to zero.
+        id: reset-admin-level-used-bytes-to-zero
+      - content: >-
+          Disable every currently-active client owned by the selected
+          administrator. Updates runtime users, stored inbound settings, client
+          records, traffic enable flags, and remote node state when applicable.
+        id: >-
+          disable-every-currently-active-client-owned-by-the-selected-administrator-updates-runtime-users-stored-inbound-settings-client-records-traffic-enable-flags-and-remote-node-state-when-applicable
+      - content: >-
+          Activate every currently-disabled client owned by the selected
+          administrator. Returns the number of clients changed and requests an
+          Xray restart when needed.
+        id: >-
+          activate-every-currently-disabled-client-owned-by-the-selected-administrator-returns-the-number-of-clients-changed-and-requests-an-xray-restart-when-needed
+      - content: >-
+          Remove every client owned by the selected administrator using the
+          optimized bulk-delete pipeline. This is destructive and removes
+          runtime users, inbound links, client records, traffic rows, IP rows,
+          and activity rows.
+        id: >-
+          remove-every-client-owned-by-the-selected-administrator-using-the-optimized-bulk-delete-pipeline-this-is-destructive-and-removes-runtime-users-inbound-links-client-records-traffic-rows-ip-rows-and-activity-rows
+    contents: []
+---
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="./public/openapi.json" webhooks={[]} operations={[{"path":"/panel/api/admins/current","method":"get"},{"path":"/panel/api/admins/list","method":"get"},{"path":"/panel/api/admins/stats","method":"get"},{"path":"/panel/api/admins/get/{id}","method":"get"},{"path":"/panel/api/admins/add","method":"post"},{"path":"/panel/api/admins/update/{id}","method":"post"},{"path":"/panel/api/admins/del/{id}","method":"post"},{"path":"/panel/api/admins/enable/{id}","method":"post"},{"path":"/panel/api/admins/disable/{id}","method":"post"},{"path":"/panel/api/admins/resetUsage/{id}","method":"post"},{"path":"/panel/api/admins/users/disableActive/{id}","method":"post"},{"path":"/panel/api/admins/users/activateDisabled/{id}","method":"post"},{"path":"/panel/api/admins/users/removeAll/{id}","method":"post"}]} showTitle />
+    </>
+  );
+}

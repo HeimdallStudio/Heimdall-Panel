@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 📖 Project Wiki
-    url: https://github.com/HeimdallStudio/Heimdall-Panel/wiki
-    about: Setup, install, configuration, and "how do I…" guides live here. Please check before opening a question.
+  - name: 📖 Project README
+    url: https://github.com/HeimdallStudio/Heimdall-Panel#readme
+    about: Start here for the project overview, installation information, and current usage notes.
   - name: 🔍 Search existing issues
     url: https://github.com/HeimdallStudio/Heimdall-Panel/issues?q=is%3Aissue
     about: Your bug, feature, or question may already be tracked. Comment on the existing one rather than opening a duplicate.

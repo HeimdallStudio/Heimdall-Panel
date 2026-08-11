@@ -1,11 +1,11 @@
 ---
 title: 出站与路由
-description: 在 3x-ui 中调整出口流量——WARP 与 NordVPN 出站、出站订阅（服务器池）、路由规则以及负载均衡器。
+description: 在 Heimdall 中调整出口流量——WARP 与 NordVPN 出站、出站订阅（服务器池）、路由规则以及负载均衡器。
 icon: Route
 ---
 
 入站负责接受客户端；**出站**则决定客户端的流量接下来发往何处。
-3x-ui 可以让流量经由 Cloudflare WARP、NordVPN，或从订阅导入的任意出站池转发，
+Heimdall 可以让流量经由 Cloudflare WARP、NordVPN，或从订阅导入的任意出站池转发，
 并通过路由规则和均衡器在它们之间进行选择。
 
 ## 编辑出站与路由
@@ -34,7 +34,7 @@ JSON，面板随后会重载 Xray。面板同时还提供**出站连通性测试
 ```
 
 **代理**出站（VLESS、VMess、Trojan、Shadowsocks）会转发到另一台
-服务器——便于进行链式代理或将部分流量发往境外。注意 3x-ui 所使用的各种线路
+服务器——便于进行链式代理或将部分流量发往境外。注意 Heimdall 所使用的各种线路
 结构：**VLESS 采用扁平形式**（`address`/`port`/`id`/`flow`/
 `encryption`），**VMess 使用 `settings.vnext[]`**，而 **Trojan/Shadowsocks 使用
 `settings.servers[]`**。`streamSettings` 必须与目标的
@@ -46,7 +46,7 @@ JSON，面板随后会重载 Xray。面板同时还提供**出站连通性测试
 
 ## Cloudflare WARP
 
-WARP 让你的服务器经由 Cloudflare 的网络出口。3x-ui 可以为你注册一个
+WARP 让你的服务器经由 Cloudflare 的网络出口。Heimdall 可以为你注册一个
 WARP 账户，并将其接入一个标签为 **`warp`** 的 WireGuard 出站：
 
 <Steps>
@@ -60,7 +60,7 @@ WARP 账户，并将其接入一个标签为 **`warp`** 的 WireGuard 出站：
 <Step>
 ### 注册 WARP
 
-在面板的 WARP 控制项中注册一个账户。3x-ui 会自动填入该出站的
+在面板的 WARP 控制项中注册一个账户。Heimdall 会自动填入该出站的
 密钥、地址、保留字节以及对端端点。
 </Step>
 
@@ -77,7 +77,7 @@ WARP 账户，并将其接入一个标签为 **`warp`** 的 WireGuard 出站：
 
 ## NordVPN
 
-3x-ui 可以根据访问令牌获取 NordVPN（NordLynx/WireGuard）凭据（或
+Heimdall 可以根据访问令牌获取 NordVPN（NordLynx/WireGuard）凭据（或
 直接接受一个私钥），并列出国家/服务器，从而让你构建一个
 NordVPN 出站。
 

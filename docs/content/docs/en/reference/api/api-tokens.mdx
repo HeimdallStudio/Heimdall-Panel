@@ -1,13 +1,16 @@
 ---
 title: API Tokens
 description: >-
-  Manage Bearer tokens used for programmatic auth (bots, central panels acting
-  on this node, CI). Each token has a unique name and an enabled flag — disable
-  to revoke without deleting, delete to revoke permanently. Tokens are stored as
-  SHA-256 hashes and the plaintext is returned only once, in the create response
-  — it cannot be retrieved afterwards, so copy it then. Send one as
-  <code>Authorization: Bearer &lt;token&gt;</code> on any /panel/api/* request —
-  the token is a full-admin credential.
+  Owner-only browser interface for API credentials. For delegated tokens, the
+  owner selects an active non-owner administrator, explicit scopes, and an
+  optional expiry. Every request is evaluated as that administrator using their
+  current role, ownership, groups, limits, and feature flags, then intersected
+  with the token scopes. Disabling the administrator, changing their role,
+  expiring/disabling the token, or deleting it takes effect on the next request.
+  Token values are stored only as SHA-256 hashes and plaintext is returned once
+  at creation. Service tokens used by trusted remote panels retain their full
+  integration contract and should be created only for machine-to-machine panel
+  infrastructure.
 full: true
 _openapi:
   preload:
@@ -15,52 +18,65 @@ _openapi:
   toc:
     - depth: 2
       title: >-
-        List every API token, enabled or not. The token value is never returned
-        — only metadata.
+        Owner-only list of all delegated and legacy service tokens. Plaintext
+        values and stored hashes are never returned.
       url: >-
-        #list-every-api-token-enabled-or-not-the-token-value-is-never-returned--only-metadata
+        #owner-only-list-of-all-delegated-and-legacy-service-tokens-plaintext-values-and-stored-hashes-are-never-returned
     - depth: 2
       title: >-
-        Mint a new API token. Name must be unique and 1-64 characters; the token
-        string is server-generated and returned only in this response — it is
-        stored hashed and cannot be retrieved later.
+        List active non-owner administrators eligible to receive a delegated
+        token. Returns only ID, username, and role metadata.
       url: >-
-        #mint-a-new-api-token-name-must-be-unique-and-1-64-characters-the-token-string-is-server-generated-and-returned-only-in-this-response--it-is-stored-hashed-and-cannot-be-retrieved-later
+        #list-active-non-owner-administrators-eligible-to-receive-a-delegated-token-returns-only-id-username-and-role-metadata
     - depth: 2
       title: >-
-        Permanently delete a token. Any caller using it stops authenticating
-        immediately.
+        Mint an owner-created delegated or service token and return plaintext
+        exactly once. The backend always records the logged-in owner as creator.
+        For backward compatibility, omitting kind creates a service token; new
+        user automation should explicitly send kind=delegated.
       url: >-
-        #permanently-delete-a-token-any-caller-using-it-stops-authenticating-immediately
+        #mint-an-owner-created-delegated-or-service-token-and-return-plaintext-exactly-once-the-backend-always-records-the-logged-in-owner-as-creator-for-backward-compatibility-omitting-kind-creates-a-service-token-new-user-automation-should-explicitly-send-kinddelegated
     - depth: 2
       title: >-
-        Toggle a token enabled/disabled without deleting it. Disabled tokens are
-        rejected by checkAPIAuth on the next request.
+        Owner-only permanent token revocation. Any caller using it stops
+        authenticating immediately.
       url: >-
-        #toggle-a-token-enableddisabled-without-deleting-it-disabled-tokens-are-rejected-by-checkapiauth-on-the-next-request
+        #owner-only-permanent-token-revocation-any-caller-using-it-stops-authenticating-immediately
+    - depth: 2
+      title: >-
+        Owner-only enable/disable toggle. Disabled tokens are rejected by
+        checkAPIAuth on the next request.
+      url: >-
+        #owner-only-enabledisable-toggle-disabled-tokens-are-rejected-by-checkapiauth-on-the-next-request
   structuredData:
     headings:
       - content: >-
-          List every API token, enabled or not. The token value is never
-          returned — only metadata.
+          Owner-only list of all delegated and legacy service tokens. Plaintext
+          values and stored hashes are never returned.
         id: >-
-          list-every-api-token-enabled-or-not-the-token-value-is-never-returned--only-metadata
+          owner-only-list-of-all-delegated-and-legacy-service-tokens-plaintext-values-and-stored-hashes-are-never-returned
       - content: >-
-          Mint a new API token. Name must be unique and 1-64 characters; the
-          token string is server-generated and returned only in this response —
-          it is stored hashed and cannot be retrieved later.
+          List active non-owner administrators eligible to receive a delegated
+          token. Returns only ID, username, and role metadata.
         id: >-
-          mint-a-new-api-token-name-must-be-unique-and-1-64-characters-the-token-string-is-server-generated-and-returned-only-in-this-response--it-is-stored-hashed-and-cannot-be-retrieved-later
+          list-active-non-owner-administrators-eligible-to-receive-a-delegated-token-returns-only-id-username-and-role-metadata
       - content: >-
-          Permanently delete a token. Any caller using it stops authenticating
-          immediately.
+          Mint an owner-created delegated or service token and return plaintext
+          exactly once. The backend always records the logged-in owner as
+          creator. For backward compatibility, omitting kind creates a service
+          token; new user automation should explicitly send kind=delegated.
         id: >-
-          permanently-delete-a-token-any-caller-using-it-stops-authenticating-immediately
+          mint-an-owner-created-delegated-or-service-token-and-return-plaintext-exactly-once-the-backend-always-records-the-logged-in-owner-as-creator-for-backward-compatibility-omitting-kind-creates-a-service-token-new-user-automation-should-explicitly-send-kinddelegated
       - content: >-
-          Toggle a token enabled/disabled without deleting it. Disabled tokens
-          are rejected by checkAPIAuth on the next request.
+          Owner-only permanent token revocation. Any caller using it stops
+          authenticating immediately.
         id: >-
-          toggle-a-token-enableddisabled-without-deleting-it-disabled-tokens-are-rejected-by-checkapiauth-on-the-next-request
+          owner-only-permanent-token-revocation-any-caller-using-it-stops-authenticating-immediately
+      - content: >-
+          Owner-only enable/disable toggle. Disabled tokens are rejected by
+          checkAPIAuth on the next request.
+        id: >-
+          owner-only-enabledisable-toggle-disabled-tokens-are-rejected-by-checkapiauth-on-the-next-request
     contents: []
 ---
 
@@ -73,7 +89,7 @@ export default function Layout(props) {
   return (
     <>
       {props.children}
-      <Comp document="./public/openapi.json" webhooks={[]} operations={[{"path":"/panel/api/setting/apiTokens","method":"get"},{"path":"/panel/api/setting/apiTokens/create","method":"post"},{"path":"/panel/api/setting/apiTokens/delete/{id}","method":"post"},{"path":"/panel/api/setting/apiTokens/setEnabled/{id}","method":"post"}]} showTitle />
+      <Comp document="./public/openapi.json" webhooks={[]} operations={[{"path":"/panel/api/setting/apiTokens","method":"get"},{"path":"/panel/api/setting/apiTokens/subjects","method":"get"},{"path":"/panel/api/setting/apiTokens/create","method":"post"},{"path":"/panel/api/setting/apiTokens/delete/{id}","method":"post"},{"path":"/panel/api/setting/apiTokens/setEnabled/{id}","method":"post"}]} showTitle />
     </>
   );
 }
