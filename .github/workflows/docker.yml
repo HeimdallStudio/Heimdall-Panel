@@ -19,4 +19,4 @@ jobs:
 
           echo "Automatic Heimdall container publishing is disabled."
           echo "Container images must not substitute an official prebuilt core."
-          echo "The v1.5.2 stable distribution is linux-amd64 archive only."
+          echo "The v1.5.3 stable distribution is linux-amd64 archive only."
