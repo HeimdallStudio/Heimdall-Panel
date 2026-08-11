@@ -154,3 +154,104 @@ func (s *ClientActivityService) ListByClientID(
 
 	return response, nil
 }
+
+// ClientActivityExportResponse is the unpaginated Activity snapshot used only
+// by the explicit JSON export path. The normal Activity list remains bounded
+// and paginated independently.
+type ClientActivityExportResponse struct {
+	Enabled    bool                     `json:"enabled"`
+	Generation int64                    `json:"generation"`
+	DataEpoch  int64                    `json:"dataEpoch"`
+	Items      []ClientActivityListItem `json:"items"`
+	Total      int64                    `json:"total"`
+}
+
+// ExportByClientID returns every logical Activity row stored for the client's
+// current data epoch.
+//
+// Unlike ListByClientID this method intentionally has no page, pageSize, LIMIT,
+// or OFFSET. Local and remote rows use the same aggregation contract as the UI:
+// equal destination + source_ip pairs are merged and their byte counters added.
+func (s *ClientActivityService) ExportByClientID(
+	clientID int,
+) (*ClientActivityExportResponse, error) {
+	response := &ClientActivityExportResponse{
+		DataEpoch: 1,
+		Items:     []ClientActivityListItem{},
+	}
+
+	if clientID <= 0 {
+		return response, nil
+	}
+
+	db := database.GetDB()
+
+	var setting model.ClientActivitySetting
+	err := db.
+		Where("client_id = ?", clientID).
+		First(&setting).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return response, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	response.Enabled = setting.Enabled
+	response.Generation = setting.Generation
+	response.DataEpoch = setting.DataEpoch
+
+	const exportSQL = `
+		SELECT
+			destination,
+			source_ip,
+			SUM(upload_bytes) AS upload_bytes,
+			SUM(download_bytes) AS download_bytes
+		FROM (
+			SELECT
+				destination,
+				source_ip,
+				upload_bytes,
+				download_bytes,
+				last_seen
+			FROM client_activity_destinations
+			WHERE client_id = ? AND data_epoch = ?
+
+			UNION ALL
+
+			SELECT
+				destination,
+				source_ip,
+				upload_bytes,
+				download_bytes,
+				last_seen
+			FROM client_activity_remote_destinations
+			WHERE client_id = ? AND data_epoch = ?
+		) AS activity_rows
+		GROUP BY destination, source_ip
+		ORDER BY
+			MAX(last_seen) DESC,
+			destination ASC,
+			source_ip ASC
+	`
+
+	if err := db.Raw(
+		exportSQL,
+		clientID,
+		setting.DataEpoch,
+		clientID,
+		setting.DataEpoch,
+	).Scan(&response.Items).Error; err != nil {
+		return nil, err
+	}
+
+	if response.Items == nil {
+		response.Items = []ClientActivityListItem{}
+	}
+
+	response.Total = int64(len(response.Items))
+
+	return response, nil
+}

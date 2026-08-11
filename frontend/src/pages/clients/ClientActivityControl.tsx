@@ -30,6 +30,7 @@ import {
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { HttpUtil, SizeFormatter } from '@/utils';
 import {
+  parseClientActivityExport,
   parseClientActivityList,
   parseClientActivityStatus,
   type ClientActivityList,
@@ -195,18 +196,8 @@ export default function ClientActivityControl({
     if (!email) return;
 
     try {
-      const requestedPageSize = Math.max(
-        activity?.total || ACTIVITY_PAGE_SIZE,
-        ACTIVITY_PAGE_SIZE,
-      );
-
-      const query = new URLSearchParams({
-        page: '1',
-        pageSize: String(requestedPageSize),
-      });
-
       const msg = await HttpUtil.get(
-        `/panel/api/clients/${encodedEmail}/activity?${query}`,
+        `/panel/api/clients/${encodedEmail}/activity/export`,
         undefined,
         { silent: true },
       ) as ApiMsg;
@@ -217,7 +208,7 @@ export default function ClientActivityControl({
         );
       }
 
-      const parsed = parseClientActivityList(msg.obj);
+      const parsed = parseClientActivityExport(msg.obj);
       if (!parsed) {
         throw new Error('Invalid Activity export response.');
       }
@@ -285,7 +276,7 @@ export default function ClientActivityControl({
             }),
       );
     }
-  }, [activity?.total, email, encodedEmail, messageApi, t]);
+  }, [email, encodedEmail, messageApi, t]);
 
   async function runAction(
     requestedAction: ActivityAction,

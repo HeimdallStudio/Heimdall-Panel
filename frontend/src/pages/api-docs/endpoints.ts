@@ -647,6 +647,22 @@ export const sections: readonly Section[] = [
       },
       {
         method: 'GET',
+        path: '/panel/api/clients/:email/activity/export',
+        summary:
+          'Return all Activity records stored for the client current data epoch without UI pagination. Local and remote/node Activity are combined using the same destination and source IP aggregation as the Activity view. Used by Download JSON.',
+        params: [
+          {
+            name: 'email',
+            in: 'path',
+            type: 'string',
+            desc: 'Client email.',
+          },
+        ],
+        response:
+          '{\n  "success": true,\n  "obj": {\n    "enabled": true,\n    "generation": 3,\n    "dataEpoch": 2,\n    "items": [\n      {\n        "destination": "example.com",\n        "sourceIp": "203.0.113.10",\n        "uploadBytes": 1024,\n        "downloadBytes": 4096\n      }\n    ],\n    "total": 1\n  }\n}',
+      },
+      {
+        method: 'GET',
         path: '/panel/api/clients/:email/activity/status',
         summary:
           'Return the opt-in Activity monitoring state for one client. A client that has never enabled monitoring is returned as disabled with generation 0 and dataEpoch 1.',

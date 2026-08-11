@@ -5805,6 +5805,64 @@
         }
       }
     },
+    "/panel/api/clients/{email}/activity/export": {
+      "get": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Return all Activity records stored for the client current data epoch without UI pagination. Local and remote/node Activity are combined using the same destination and source IP aggregation as the Activity view. Used by Download JSON.",
+        "operationId": "get_panel_api_clients_email_activity_export",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "description": "Client email.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "obj": {}
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "obj": {
+                    "enabled": true,
+                    "generation": 3,
+                    "dataEpoch": 2,
+                    "items": [
+                      {
+                        "destination": "example.com",
+                        "sourceIp": "203.0.113.10",
+                        "uploadBytes": 1024,
+                        "downloadBytes": 4096
+                      }
+                    ],
+                    "total": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/panel/api/clients/{email}/activity/status": {
       "get": {
         "tags": [

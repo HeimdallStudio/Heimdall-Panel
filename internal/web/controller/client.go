@@ -106,6 +106,7 @@ func (a *ClientController) initRouter(g *gin.RouterGroup) {
 	g.GET("/links/:email", a.getClientLinks)
 	g.POST("/activity/node-sync", a.syncNodeActivity)
 	g.GET("/:email/activity", a.getActivity)
+	g.GET("/:email/activity/export", a.exportActivity)
 	g.GET("/:email/activity/status", a.getActivityStatus)
 
 	g.POST("/add", a.create)
@@ -965,6 +966,26 @@ func (a *ClientController) resetActivityData(c *gin.Context) {
 
 	jsonObj(c, status, nil)
 	notifyClientsChanged()
+}
+
+// exportActivity returns every logical Activity row stored in the client's
+// current data epoch. It deliberately bypasses UI pagination while preserving
+// the same local+remote aggregation semantics.
+func (a *ClientController) exportActivity(c *gin.Context) {
+	email := c.Param("email")
+
+	client, ok := a.requireVisibleClient(c, email)
+	if !ok {
+		return
+	}
+
+	result, err := a.activityService.ExportByClientID(client.Id)
+	if err != nil {
+		jsonObj(c, nil, err)
+		return
+	}
+
+	jsonObj(c, result, nil)
 }
 
 // getActivity returns the current Activity epoch as a bounded paginated list.

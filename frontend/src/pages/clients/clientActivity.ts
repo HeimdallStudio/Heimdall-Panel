@@ -154,3 +154,61 @@ export function parseClientActivityList(
     pageSize,
   };
 }
+
+export interface ClientActivityExport {
+  enabled: boolean;
+  generation: number;
+  dataEpoch: number;
+  items: ClientActivityItem[];
+  total: number;
+}
+
+export function parseClientActivityExport(
+  value: unknown,
+): ClientActivityExport | null {
+  const record = recordOf(value);
+
+  if (
+    !record
+    || typeof record.enabled !== 'boolean'
+    || !Array.isArray(record.items)
+  ) {
+    return null;
+  }
+
+  const generation = safeInteger(record.generation, 0);
+  const dataEpoch = safeInteger(record.dataEpoch, 1);
+  const total = safeInteger(record.total, 0);
+
+  if (
+    generation === null
+    || dataEpoch === null
+    || total === null
+  ) {
+    return null;
+  }
+
+  const items: ClientActivityItem[] = [];
+
+  for (const rawItem of record.items) {
+    const item = parseClientActivityItem(rawItem);
+
+    if (!item) {
+      return null;
+    }
+
+    items.push(item);
+  }
+
+  if (items.length !== total) {
+    return null;
+  }
+
+  return {
+    enabled: record.enabled,
+    generation,
+    dataEpoch,
+    items,
+    total,
+  };
+}
