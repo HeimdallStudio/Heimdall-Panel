@@ -598,6 +598,8 @@ export function useClients() {
     mutationFn: (email: string) =>
       HttpUtil.post(
         `/panel/api/clients/resetTraffic/${encodeURIComponent(email)}`,
+        undefined,
+        { silentSuccess: true },
       ),
     onSuccess: (msg) => {
       if (msg?.success) invalidateAll();
@@ -605,7 +607,12 @@ export function useClients() {
   });
 
   const resetAllTrafficsMut = useMutation({
-    mutationFn: () => HttpUtil.post("/panel/api/clients/resetAllTraffics"),
+    mutationFn: () =>
+      HttpUtil.post(
+        "/panel/api/clients/resetAllTraffics",
+        undefined,
+        { silentSuccess: true },
+      ),
     onSuccess: (msg) => {
       if (msg?.success) invalidateAll();
     },
