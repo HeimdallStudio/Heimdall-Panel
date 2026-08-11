@@ -501,14 +501,11 @@ var connectionTokens = map[string]bool{
 
 var displayRemoveTokens = mergeTokenSets(usageInfoTokens, connectionTokens)
 
-// firstLinkOnlyBodyTokens are stripped from every subscription-body link after a
-// client's first one: the usage/info tokens plus the per-client EMAIL/USERNAME
-// identity. A client app needs the email once, so repeating it on every link of
-// the same subscription is noise — show it on the first link only, like traffic.
-var firstLinkOnlyBodyTokens = mergeTokenSets(usageInfoTokens, map[string]bool{
-	"EMAIL":    true,
-	"USERNAME": true,
-})
+// firstLinkOnlyBodyTokens are suppressed after the first subscription-body
+// link only for subscription-wide usage/status information. Identity and
+// connection tokens such as EMAIL, USERNAME, INBOUND and HOST are explicit
+// parts of the administrator's remark template and must render on every link.
+var firstLinkOnlyBodyTokens = usageInfoTokens
 
 func mergeTokenSets(sets ...map[string]bool) map[string]bool {
 	out := make(map[string]bool)
@@ -521,6 +518,25 @@ func mergeTokenSets(sets ...map[string]bool) map[string]bool {
 }
 
 func filterRemarkTemplate(template string, remove map[string]bool) string {
+	// If this template contains none of the tokens requested for removal,
+	// return it byte-for-byte unchanged. Besides avoiding unnecessary work,
+	// this preserves administrator-authored separators and whitespace such as
+	// "{{EMAIL}} | {{INBOUND}} | {{HOST}}" on repeated subscription links.
+	//
+	// Cleanup/normalization is only needed when a removable token is actually
+	// present and leaves surrounding separators or text behind.
+	locs := remarkVarRe.FindAllStringSubmatchIndex(template, -1)
+	hasRemove := false
+	for _, loc := range locs {
+		if remove[template[loc[2]:loc[3]]] {
+			hasRemove = true
+			break
+		}
+	}
+	if !hasRemove {
+		return template
+	}
+
 	segments := strings.Split(template, "|")
 	kept := make([]string, 0, len(segments))
 	for _, seg := range segments {
@@ -620,9 +636,10 @@ func (s *SubService) genTemplatedRemark(inbound *model.Inbound, client model.Cli
 }
 
 // genHostRemark builds one host endpoint's remark for a specific client. With a
-// remark template set it is template-driven (body shows the full template on the
-// first link and the name-only part thereafter; displays render the name-only
-// part). With no template it falls back to inbound, host and email joined by "-".
+// remark template set it is template-driven. Subscription bodies keep identity
+// and connection tokens on every link while subscription-wide usage/status
+// tokens may be suppressed after the first link. Displays render the name-only
+// part. With no template it falls back to inbound, host and email joined by "-".
 func (s *SubService) genHostRemark(inbound *model.Inbound, client model.Client, hostRemark string, transport string) string {
 	if s.remarkTemplate != "" {
 		return s.genTemplatedRemark(inbound, client, hostRemark, transport)
