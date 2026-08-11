@@ -1,6 +1,4 @@
-<p align="center">
-  <img width="2172" height="724" alt="Heimdall README hero banner" src="https://github.com/user-attachments/assets/c5159c4c-2db1-4248-954c-26739e36ee39" />
-</p>
+<img width="2290" height="687" alt="image" src="https://github.com/user-attachments/assets/39a7a9e3-aa5e-4abb-a52a-e5900a6470db" />
 
 ## ⚡ Quick Start
 
