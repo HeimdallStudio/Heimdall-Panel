@@ -226,6 +226,13 @@ do
         "$STAGE/x-ui/sub_templates/ourenus/$name"
 done
 
+test -f "$BUILD_SRC/sub_templates/ourenus-src/LICENSE" ||
+    fail "required Ourenus license missing"
+
+install -m 0644 \
+    "$BUILD_SRC/sub_templates/ourenus-src/LICENSE" \
+    "$STAGE/x-ui/sub_templates/ourenus/LICENSE"
+
 install -m 0755 \
     "$CUSTOM_XRAY" \
     "$STAGE/x-ui/bin/xray-linux-amd64"
@@ -350,6 +357,7 @@ REQUIRED_PATHS=(
     x-ui/bin/geosite_IR.dat
     x-ui/bin/geoip_RU.dat
     x-ui/bin/geosite_RU.dat
+    x-ui/sub_templates/ourenus/LICENSE
     x-ui/sub_templates/ourenus/index.html
     x-ui/sub_templates/ourenus/index.php
 )
